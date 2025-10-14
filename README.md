@@ -93,7 +93,7 @@ Follow the steps below on an **Ubuntu 24.04** terminal (preferably running the R
 
   #### Install ROS 2 base and dev tools
   
-  Replace `ROS_DISTRO` with `rolling`, `jazzy` as required:
+  Replace `ROS_DISTRO` with `rolling` as required:
   ```bash
   export ROS_DISTRO=rolling 
   ``` 
@@ -114,7 +114,7 @@ Follow the steps below on an **Ubuntu 24.04** terminal (preferably running the R
 <details>
   <summary> Using Docker </summary>
 
-  **Prereqs:** Docker and Docker compose installed. The provided Dockerfile sets up Ubuntu 24.04 with ROS 2 (default: `${ROS_DISTRO}=jazzy`).  
+  **Prereqs:** Docker and Docker compose installed. The provided Dockerfile sets up Ubuntu 24.04 with ROS 2.  
   You can change the `ROS_DISTRO` build argument in the dockerfile to use a different supported distribution.
 
 
