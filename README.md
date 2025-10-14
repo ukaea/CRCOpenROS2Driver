@@ -5,7 +5,7 @@ system by an external Linux computer. For more detail on CRCOpen see the documen
 
   > Note: The orl_driver binary included in this repository is provided by Comau and must be used only in compliance with an existing CRCOpen agreement.
 
-ros2_control is the primary framework within the ROS 2 ecosystem for managing control and access to robot hardware. Modularity is achieved through separate packages for hardware interfaces, robot descriptions, and controllers. For more detail, users should familiarise themselves with the [ros2_control documentation](https://control.ros.org/rolling/index.html)
+ros2_control is the primary framework within the ROS 2 ecosystem for managing control and access to robot hardware. Modularity is achieved through separate packages for hardware interfaces, robot descriptions, and controllers. For more detail, users should familiarise themselves with the [ros2_control documentation](https://control.ros.org/jazzy/index.html)
 
 This repository contains:
 
@@ -25,7 +25,7 @@ A ROS 2 package with useful launch files as explained in the usage section of th
 
 **Overall pipeline status**
 <!-- Overall pipeline status -->
-[![CI](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml)
+[![CI](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=jazzy)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml)
 
 
 # Getting Started
@@ -36,11 +36,11 @@ A ROS 2 package with useful launch files as explained in the usage section of th
 Follow the steps below on an **Ubuntu 24.04** terminal (preferably running the Real-time Ubuntu kernel with the PREEMPT_RT patch for improved determinism and low latency). This ROS 2 control driver officially supports Rolling on the main branch, Jazzy on a separate actively maintained branch, and includes an unmaintained Humble branch for legacy use.
 
 <details>
-  <summary> How to install ROS 2 Rolling </summary>
+  <summary> How to install ROS 2 Jazzy </summary>
 
-  For a complete, step-by-step walkthrough, please see the official ROS 2 Rolling installation guide:  
+  For a complete, step-by-step walkthrough, please see the official ROS 2 Jazzy installation guide:  
 
-  https://docs.ros.org/en/rolling/Installation.html
+  https://docs.ros.org/en/jazzy/Installation.html
 
   #### System update & essentials
 
@@ -91,9 +91,9 @@ Follow the steps below on an **Ubuntu 24.04** terminal (preferably running the R
 
   #### Install ROS 2 base and dev tools
   
-  Replace `ROS_DISTRO` with `rolling`, `jazzy`, or `kilted` as required:
+  Replace `ROS_DISTRO` with `rolling`, `jazzy` as required:
   ```bash
-  export ROS_DISTRO=rolling 
+  export ROS_DISTRO=jazzy 
   ``` 
 
   ```bash
@@ -251,7 +251,7 @@ Edit the paramters in `comau_**_description/urdf/**.ros2_control.xacro`. The IP 
 > [!CAUTION]
 > Operating an industrial robot can be dangerous. Users are expected to have appropriate risk assessment and mitigation in place. This ROS2 interface is experimental and should not be used for any safety function.
 
-This driver conforms as much as possible to the standards of [ros2_control](https://control.ros.org/rolling/index.html) so advanced users may use it in this way.
+This driver conforms as much as possible to the standards of [ros2_control](https://control.ros.org/jazzy/index.html) so advanced users may use it in this way.
 
 The `comau_bringup` package provides some launch files for convenience to be used as follows:
 
@@ -269,7 +269,7 @@ This starts the core functionality in addition to a topic-based controller of th
 
 ### Other ros2_control controllers
 
-If you want a controller beyond the built-in **topic-based** ones, you can implement a custom ros2_control controller. See the [official guide](https://control.ros.org/rolling/doc/ros2_controllers/doc/writing_new_controller.html) for a step-by-step walkthrough.
+If you want a controller beyond the built-in **topic-based** ones, you can implement a custom ros2_control controller. See the [official guide](https://control.ros.org/jazzy/doc/ros2_controllers/doc/writing_new_controller.html) for a step-by-step walkthrough.
 
 You can also reuse one of the generic controllers provided by [ros2_controllers](https://github.com/ros-controls/ros2_controllers). Some of these use topics in different ways (for example, a PID controller can take a reference input from a topic), while others are action- or service-driven (e.g. trajectory controllers).
 

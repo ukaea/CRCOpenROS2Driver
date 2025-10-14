@@ -1,7 +1,7 @@
 FROM ubuntu:24.04
 
 # ROS distribution to use (rolling | jazzy | humble, etc.)
-ARG ROS_DISTRO=rolling
+ARG ROS_DISTRO=jazzy
 
 # ---------- base ----------
 ENV DEBIAN_FRONTEND=noninteractive \

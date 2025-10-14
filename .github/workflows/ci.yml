@@ -2,19 +2,19 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ jazzy ]
   pull_request:
-    branches: [ main ]
+    branches: [ jazzy ]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build (rolling on ubuntu-24.04)
+    name: Build (jazzy on ubuntu-24.04)
     runs-on: ubuntu-24.04
 
     env:
       DEBIAN_FRONTEND: noninteractive
-      ROS_DISTRO: rolling
+      ROS_DISTRO: jazzy
       ORL_DRIVER_ROOT: /usr
 
     steps:
