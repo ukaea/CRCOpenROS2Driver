@@ -25,7 +25,7 @@ A ROS 2 package with useful launch files as explained in the usage section of th
 
 **Overall pipeline status**
 <!-- Overall pipeline status -->
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml)
+[![CI](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml)
 
 
 # Getting Started

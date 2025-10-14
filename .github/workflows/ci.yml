@@ -66,7 +66,7 @@ jobs:
           source /opt/ros/${ROS_DISTRO}/setup.bash
           rosdep install --from-paths . -r --rosdistro ${ROS_DISTRO} --ignore-src -y
 
-      - name: Install proprietary ORL driver if present
+      - name: Install ORL driver if present
         run: |
           set -e
           if ls crcopen_hardware/lib/orl_driver-*.deb >/dev/null 2>&1; then
