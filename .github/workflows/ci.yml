@@ -71,13 +71,27 @@ jobs:
           set -e
           if ls crcopen_hardware/lib/orl_driver-*.deb >/dev/null 2>&1; then
             echo "Found ORL .deb, installing…"
-            sudo apt-get install -y crcopen_hardware/lib/orl_driver-*.deb || true
-            ORL_DRIVER_ROOT=$(dpkg -L orl_driver 2>/dev/null | grep '/include$' | head -n1 | xargs dirname || true)
-            if [ -z "$ORL_DRIVER_ROOT" ]; then ORL_DRIVER_ROOT=/usr; fi
-            echo "ORL_DRIVER_ROOT=$ORL_DRIVER_ROOT" | tee -a $GITHUB_ENV
-            echo "CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$ORL_DRIVER_ROOT/lib/cmake/orl_driver" | tee -a $GITHUB_ENV
-            echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORL_DRIVER_ROOT/lib" | tee -a $GITHUB_ENV
-            echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$ORL_DRIVER_ROOT/lib/pkgconfig" | tee -a $GITHUB_ENV
+            # Use a path so apt treats it as a file, not a package name:
+            # either absolute path or './' prefix both work.
+            DEB_PATH="$(ls -1 crcopen_hardware/lib/orl_driver-*.deb | head -n1)"
+            sudo apt-get update -y
+            # Option A (apt can install local files when prefixed with ./)
+            sudo apt-get install -y "./${DEB_PATH}" \
+              || (sudo dpkg -i "./${DEB_PATH}" && sudo apt-get -f install -y)
+
+            # Discover the actual install prefix of orl_driver
+            ORL_DRIVER_ROOT="$(dpkg -L orl_driver | grep -E '/include$' | head -n1 | xargs dirname || true)"
+            [ -z "$ORL_DRIVER_ROOT" ] && ORL_DRIVER_ROOT=/usr
+            echo "ORL_DRIVER_ROOT=${ORL_DRIVER_ROOT}"
+
+            # Export prefix and common search paths for subsequent steps
+            # (point CMAKE_PREFIX_PATH to the INSTALL PREFIX, which is safest)
+            {
+              echo "ORL_DRIVER_ROOT=${ORL_DRIVER_ROOT}"
+              echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH:+$CMAKE_PREFIX_PATH:}${ORL_DRIVER_ROOT}"
+              echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${ORL_DRIVER_ROOT}/lib:${ORL_DRIVER_ROOT}/lib64"
+              echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH:+$PKG_CONFIG_PATH:}${ORL_DRIVER_ROOT}/lib/pkgconfig:${ORL_DRIVER_ROOT}/lib64/pkgconfig"
+            } >> "$GITHUB_ENV"
           else
             echo "No ORL .deb found (crcopen_hardware/lib/orl_driver-*.deb). Skipping."
           fi
