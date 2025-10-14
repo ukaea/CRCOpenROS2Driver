@@ -25,7 +25,7 @@ A ROS 2 package with useful launch files as explained in the usage section of th
 
 **Overall pipeline status**
 <!-- Overall pipeline status -->
-[![Pipeline Status](https://git.ccfe.ac.uk/apcs/comau-crcopen-ros2-driver/badges/main/pipeline.svg)](https://git.ccfe.ac.uk/apcs/comau-crcopen-ros2-driver/-/pipelines)
+[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml)
 
 
 # Getting Started
