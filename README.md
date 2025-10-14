@@ -33,7 +33,7 @@ A ROS 2 package with useful launch files as explained in the usage section of th
 
 ## Installation
 
-Follow these steps on a native **Ubuntu 24.04** terminal. This ROS 2 control driver officially supports Rolling on the main branch, Jazzy on a separate actively maintained branch, and includes an unmaintained Humble branch for legacy use.
+Follow the steps below on an **Ubuntu 24.04** terminal (preferably running the Real-time Ubuntu kernel with the PREEMPT_RT patch for improved determinism and low latency). This ROS 2 control driver officially supports Rolling on the main branch, Jazzy on a separate actively maintained branch, and includes an unmaintained Humble branch for legacy use.
 
 <details>
   <summary> How to install ROS 2 Rolling </summary>
@@ -152,6 +152,16 @@ Follow these steps on a native **Ubuntu 24.04** terminal. This ROS 2 control dri
   - The ORL driver .deb is installed by install_docker.sh. You must have it at crcopen_hardware/lib/.
   
 </details>
+
+<details>
+  <summary>How to enable Real-time Ubuntu</summary>
+
+  We recommend reviewing the official Ubuntu documentation for detailed instructions on enabling Real-time Ubuntu:  
+  - [Enable Real-time Ubuntu](https://documentation.ubuntu.com/real-time/latest/how-to/enable-real-time-ubuntu/)  
+  - [About Real-time Ubuntu](https://ubuntu.com/real-time)
+
+</details>
+
 
 ### Install Driver dependencies
 
