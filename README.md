@@ -350,7 +350,7 @@ The above is made easier by the single launch file
 
 ## Goals, Disclaimer & Support
 
-This ROS2 driver was developed by UKAEA RACE Cybernetics engineers for internal research. While it has been tested extensively on our Comau NJ-130-2.6, it is provided as-is for research and development use only. **It is not intended for production or safety-critical applications** and may contain unforeseen bugs or limitations.
+This ROS2 driver was developed by UKAEA [RACE](https://www.ukaea.org/expertise/robotics/) Cybernetics engineers for internal research. While it has been tested extensively on our Comau NJ-130-2.6, it is provided as-is for research and development use only. **It is not intended for production or safety-critical applications** and may contain unforeseen bugs or limitations.
 
 **Community-maintained**
 - At the time of this writing, we are actively building and testing against ROS 2 Rolling and Jazzy on Ubuntu 24.04; future support for newer ROS 2 or Ubuntu releases will depend on available resources.
