@@ -11,11 +11,11 @@ This repository contains:
 
 __crcopen_hardware__
 
-This contains the ROS 2 driver itself. In ros2_control parlance, this package is a [Hardware Component](https://control.ros.org/humble/doc/getting_started/getting_started.html#hardware-components) of the System type.
+This contains the ROS 2 driver itself. In ros2_control parlance, this package is a [Hardware Component](https://control.ros.org/rolling/doc/getting_started/getting_started.html#hardware-components) of the System type.
 
 __comau_robots__
 
-A directory of robot description packages for Comau robots. At the moment only the [Comau NJ130-2.6](https://www.comau.com/en/our-offer/products-and-solutions/robot-team/nj_130_2_6/) is included. 
+A directory of robot description packages for Comau robots. At the moment only the [Comau NJ130-2.6](https://www.comau.com/en/our-offer/products-and-solutions/robot-team/nj-130-2-6) is included. 
 
 __comau_bringup__
 
@@ -91,7 +91,7 @@ Follow the steps below on an **Ubuntu 24.04** terminal (preferably running the R
 
   #### Install ROS 2 base and dev tools
   
-  Replace `ROS_DISTRO` with `rolling`, `jazzy`, or `kilted` as required:
+  Replace `ROS_DISTRO` with `rolling`, `jazzy` as required:
   ```bash
   export ROS_DISTRO=rolling 
   ``` 
