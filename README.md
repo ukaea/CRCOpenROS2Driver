@@ -228,7 +228,7 @@ cd ~/ros2_ws
 
 Compile with colcon
 ```bash
-source "/opt/ros/{ROS_DISTRO}/setup.bash"
+source /opt/ros/{ROS_DISTRO}/setup.bash
 colcon build
   ``` 
 Source   the install setup
