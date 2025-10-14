@@ -1,0 +1,195 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- helper macro -->
+  <xacro:macro name="add_visual_and_collision" params="link_name xyz rpy">
+    <visual>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+      <geometry>
+        <mesh filename="package://comau_nj_130_2_6_description/meshes/visual/${link_name}.dae"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+      <geometry>
+          <mesh filename="package://comau_nj_130_2_6_description/meshes/collision/${link_name}.stl"/>
+      </geometry>
+    </collision>
+  </xacro:macro>
+
+  <!-- ROBOT LINKS -->
+
+  <link name="base_link">
+    <xacro:add_visual_and_collision link_name="link_0" xyz="0 0 0" rpy="0 0 0"/>
+    <!-- inertia: none because base is a fixed link -->
+  </link>
+  
+  <link name="link_1_and_motors">
+    <xacro:add_visual_and_collision link_name="link_1" xyz="0 0 0" rpy="0 0 0"/>
+    <xacro:add_visual_and_collision link_name="motor_bottom" xyz="-0.157 -0.091 -0.142" rpy="0 0 ${pi/6}"/>
+    <xacro:add_visual_and_collision link_name="motor_left" xyz="0.35 -0.295 -0.499" rpy="${-pi/2} ${pi} 0"/>
+    <xacro:add_visual_and_collision link_name="motor_right" xyz="0.35 0.35 -0.499" rpy="${pi/2} 0 0"/>
+    <inertial>
+      <origin xyz="0.22392 -0.01828 -0.33805" rpy="0 0 0"/>
+      <mass value="291.621"/>
+      <inertia ixx="31.75734" ixy="-1.23167" ixz="6.99346" iyy="23.87224" iyz="0.39674" izz="33.27371"/>
+    </inertial>
+  </link>
+
+  <link name="link_2">
+    <xacro:add_visual_and_collision link_name="link_2" xyz="0 0 0" rpy="0 0 0"/>
+    <inertial>
+      <origin xyz="-0.02393 0.524 -0.0242" rpy="0 0 0"/>
+      <mass value="84.0145"/>
+      <inertia ixx="11.68085" ixy="0.02646" ixz="-0.02562" iyy="1.25519" iyz="0.18816" izz="11.28421"/>
+    </inertial>
+  </link>
+
+  <link name="link_3_and_motor">
+    <xacro:add_visual_and_collision link_name="link_3" xyz="0 0 0" rpy="0 0 0"/>
+    <xacro:add_visual_and_collision link_name="motor_top" xyz="-0.10975 0.2 -0.16973" rpy="${-pi/2} 0 ${-pi/2}"/>
+    <inertial>
+      <origin xyz="-0.00823 0.21402 -0.03362" rpy="0 0 0"/>
+      <mass value="106.16593"/>
+      <inertia ixx="3.19439" ixy="-0.31055" ixz="-0.30181" iyy="2.87747" iyz="0.38262" izz="2.51996"/>
+    </inertial>
+  </link>
+
+  <link name="link_4_and_5">
+    <xacro:add_visual_and_collision link_name="link_4" xyz="0 0 0" rpy="0 0 0"/>
+    <xacro:add_visual_and_collision link_name="link_5" xyz="0 0 -0.56058" rpy="0 0 0"/>
+    <inertial>
+      <origin xyz="0.0027 0.00143 -0.63148" rpy="0 0 0"/>
+      <mass value="145.56153"/>
+      <inertia ixx="12.48865" ixy="-0.02153" ixz="0.03639" iyy="11.50393" iyz="-0.21702" izz="1.94031"/>
+    </inertial>
+  </link>
+
+  <link name="link_6_and_motor">
+    <xacro:add_visual_and_collision link_name="link_6" xyz="0 0 0" rpy="0 0 0"/>
+    <xacro:add_visual_and_collision link_name="motor_wrist" xyz="0 0.09025 0" rpy="0 0 0"/>
+    <inertial>
+      <origin xyz="0.00031 0.05009 0.00026" rpy="0 0 0"/>
+      <mass value="14.73101"/>
+      <inertia ixx="0.117" ixy="0.00121" ixz="0.00004" iyy="0.04204" iyz="-0.00128" izz="0.1105"/>
+    </inertial>
+  </link>
+
+  <link name="link_7">
+    <xacro:add_visual_and_collision link_name="link_7" xyz="0 0 0" rpy="0 0 0"/>
+    <inertial>
+      <origin xyz="-0.0016 0 -0.02735" rpy="0 0 0"/>
+      <mass value="1.76396"/>
+      <inertia ixx="0.00329" ixy="0.0" ixz="0.00002" iyy="0.00308" iyz="0.0" izz="0.00595"/>
+    </inertial>
+  </link>
+
+  <link name="link_8">
+    <xacro:add_visual_and_collision link_name="link_8" xyz="0 0 0" rpy="0 0 0"/>
+    <inertial>
+      <origin xyz="-0.16357 -0.00986 -0.02754" rpy="0 0 0"/>
+      <mass value="15.91258"/>
+      <inertia ixx="0.05682" ixy="-0.01403" ixz="0.00188" iyy="0.24032" iyz="0.00061" izz="0.26765"/>
+    </inertial>
+  </link>
+
+  <link name="link_9">
+    <xacro:add_visual_and_collision link_name="link_9" xyz="0 0 0" rpy="0 0 0"/>
+    <inertial>
+      <origin xyz="0.06515 0.50884 0.01475" rpy="0 0 0"/>
+      <mass value="27.86138"/>
+      <inertia ixx="2.45327" ixy="0.06433" ixz="0.00017" iyy="0.06647" iyz="-0.00083" izz="2.4958"/>
+    </inertial>
+  </link>
+
+  
+  <!-- These links are virtual, the have zero size. They are needed as one real joint is modelled as two - as it gets influenced by Joint2 and Joint3 -->
+  <link name="elbow_passive_virtual_link"/>
+  <link name="lower_back_virtual_link"/>
+  
+  <!-- ROBOT JOINTS -->
+  
+  <!-- joints - main serial chain -->
+  <joint name="waist" type="revolute">
+    <parent link="base_link"/>
+    <child link="link_1_and_motors"/>
+    <origin xyz="0 0 0.331" rpy="${pi} 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="${radians(-180)}" upper="${radians(180)}" velocity="${radians(110)}" effort="100000.0" />
+  </joint>
+  
+  <joint name="shoulder" type="revolute">
+    <parent link="link_1_and_motors"/>
+    <child link="link_2"/>
+    <origin xyz="0.35 0 -0.499" rpy="${-pi/2} 0 ${pi}"/>
+    <axis xyz="0 0 1"/> 
+    <limit lower="${radians(-75)}" upper="${radians(60)}" velocity="${radians(110)}" effort="100000.0" /> 
+  </joint>
+  
+  <joint name="elbow_active" type="revolute">
+    <parent link="link_1_and_motors"/>
+    <child link="link_8"/>
+    <origin xyz="0.35 0.1945 -0.499" rpy="${-pi/2} ${radians(95)} 0"/> 
+    <axis xyz="0 0 1"/>
+    <limit lower="${radians(-256)}" upper="${radians(-10)}" velocity="${radians(110)}" effort="100000.0" />
+  </joint>
+  
+  <joint name="forearm_roll" type="revolute">
+    <parent link="link_3_and_motor"/>
+    <child link="link_4_and_5"/>
+    <origin xyz="0.145 0.25 0" rpy="${-pi/2} ${0} ${pi/2}"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="${radians(-280)}" upper="${radians(280)}" velocity="${radians(190)}" effort="100000.0" /> 
+  </joint>
+    
+  <joint name="wrist_angle" type="revolute">
+    <parent link="link_4_and_5"/>
+    <child link="link_6_and_motor"/>
+    <origin xyz="0 0 -0.96058" rpy="${-pi/2} 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="${radians(-120)}" upper="${radians(120)}" velocity="${radians(190)}" effort="100000.0" /> 
+  </joint>
+  
+  <joint name="wrist_rotate" type="revolute">
+    <parent link="link_6_and_motor"/>
+    <child link="link_7"/>
+    <origin xyz="0 0.165 0" rpy="${pi/2} 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="${radians(-2700)}" upper="${radians(2700)}" velocity="${radians(230)}" effort="100000.0" />
+  </joint>
+ 
+  <!-- passive elbow joint -->
+  <joint name="elbow_passive_mimic_1" type="continuous">
+    <parent link="link_2"/>
+    <child link="elbow_passive_virtual_link"/>
+    <origin xyz="0 1.16 0" rpy="0 ${pi} 0"/>
+    <axis xyz="0 0 1"/>
+    <mimic joint="shoulder" multiplier="1" offset="0" /> 
+  </joint>
+  
+  <joint name="elbow_passive_mimic_2" type="continuous">
+    <parent link="elbow_passive_virtual_link"/>
+    <child link="link_3_and_motor"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <mimic joint="elbow_active" multiplier="1" offset="${radians(90)}" /> 
+  </joint>
+  
+  <!-- lower back passive joint-->
+  <joint name="lower_back_passive_mimic_1" type="continuous">
+    <parent link="link_8"/>
+    <child link="lower_back_virtual_link"/>
+    <origin xyz="-0.32 0 -0.015" rpy="0 ${pi} ${radians(-5 - 90)}"/> 
+    <axis xyz="0 0 1"/>   
+    <mimic joint="shoulder" multiplier="1" offset="0" />
+  </joint>
+  
+  <joint name="lower_back_passive_mimic_2" type="continuous">
+    <parent link="lower_back_virtual_link"/>
+    <child link="link_9"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/> 
+    <axis xyz="0 0 1"/>   
+    <mimic joint="elbow_active" multiplier="1" offset="0" />
+  </joint>
+
+</robot>

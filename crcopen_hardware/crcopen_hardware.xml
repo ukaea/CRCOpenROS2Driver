@@ -1,0 +1,9 @@
+<library path="crcopen_hardware">
+  <class name="crcopen_hardware/CRCOpenHardware"
+         type="crcopen_hardware::CRCOpenHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      A ros2_control hardware interface for the CRC Open Software Version 4.41 by Comau.
+    </description>
+  </class>
+</library>

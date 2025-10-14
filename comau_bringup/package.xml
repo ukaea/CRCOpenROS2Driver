@@ -1,0 +1,27 @@
+<package format="3">
+  <name>comau_bringup</name>
+  <version>0.0.0</version>
+  <description>Launch and config files for Comau robots.</description>
+  <maintainer email="adam.slater@ukaea.uk">Adam Slater</maintainer>
+  <license>Apache-2.0</license>
+
+  <!-- build tool -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- runtime -->
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>controller_manager</exec_depend>      <!-- spawner, ros2_control_node comes through here -->
+  <exec_depend>ros2_control</exec_depend>           <!-- ros2_control_node plugin framework -->
+  <exec_depend>ros2_controllers</exec_depend>       <!-- controllers.yaml uses joint_state_broadcaster, etc. -->
+  <exec_depend>robot_state_publisher</exec_depend>  <!-- for the state publisher node -->
+  <exec_depend>xacro</exec_depend>                  <!-- to process your URDF xacro -->
+
+  <!-- tests -->
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

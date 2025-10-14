@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  
+  <xacro:macro name="all_command_and_state_interfaces">
+    <command_interface name="position"/>
+    <command_interface name="position_direct"/>
+    <command_interface name="velocity"/>
+    <command_interface name="acceleration"/>
+    <command_interface name="current"/>
+    <command_interface name="torque"/>
+    
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+    <state_interface name="acceleration"/>
+    <state_interface name="current"/>
+    <state_interface name="torque"/>
+  </xacro:macro>
+
+  <ros2_control name="comau_nj_130_2_6" type="system">
+    <hardware>
+        <plugin>crcopen_hardware/CRCOpenHardware</plugin>
+        <!-- Set IP addresses -->
+        <param name="lpc_addr">169.254.100.2</param>
+        <param name="crc_addr">169.254.100.1</param>
+
+        <!-- Set payload parameters -->
+        <param name="payload_mass">0.0</param>
+        <param name="payload_cog_x">0.0</param>
+        <param name="payload_cog_y">0.0</param>
+        <param name="payload_cog_z">0.0</param>
+        <param name="payload_inertia_xx">0.0</param>
+        <param name="payload_inertia_xy">0.0</param>
+        <param name="payload_inertia_xz">0.0</param>
+        <param name="payload_inertia_yy">0.0</param>
+        <param name="payload_inertia_yz">0.0</param>
+        <param name="payload_inertia_zz">0.0</param>
+    </hardware>
+
+    <joint name="waist">
+      <param name="axis_idx">0</param>
+
+      <param name="ruckig_max_vel">${radians(110)}</param>
+      <param name="ruckig_max_acc">${radians(600)}</param>
+      <param name="ruckig_max_jrk">${radians(10000)}</param>
+
+      <param name="vr_TorqConst">1.0</param>
+
+      <xacro:all_command_and_state_interfaces />
+    </joint>
+
+    <joint name="shoulder">
+      <param name="axis_idx">1</param>
+
+      <param name="ruckig_max_vel">${radians(110)}</param>
+      <param name="ruckig_max_acc">${radians(500)}</param>
+      <param name="ruckig_max_jrk">${radians(10000)}</param>
+
+      <param name="vr_TorqConst">1.0</param>
+
+      <xacro:all_command_and_state_interfaces />
+    </joint>
+
+    <joint name="elbow_active">
+      <param name="axis_idx">2</param>
+
+      <param name="ruckig_max_vel">${radians(110)}</param>
+      <param name="ruckig_max_acc">${radians(850)}</param>
+      <param name="ruckig_max_jrk">${radians(15000)}</param>
+
+      <param name="vr_TorqConst">1.0</param>
+
+      <xacro:all_command_and_state_interfaces />
+    </joint>
+
+    <joint name="forearm_roll">
+      <param name="axis_idx">3</param>
+
+      <param name="ruckig_max_vel">${radians(190)}</param>
+      <param name="ruckig_max_acc">${radians(3400)}</param>
+      <param name="ruckig_max_jrk">${radians(90000)}</param>
+
+      <param name="vr_TorqConst">1.0</param>
+
+      <xacro:all_command_and_state_interfaces />
+    </joint>
+
+    <joint name="wrist_angle">
+      <param name="axis_idx">4</param>
+      
+      <param name="ruckig_max_vel">${radians(190)}</param>
+      <param name="ruckig_max_acc">${radians(3300)}</param>
+      <param name="ruckig_max_jrk">${radians(90000)}</param>
+
+      <param name="vr_TorqConst">1.0</param>
+
+      <xacro:all_command_and_state_interfaces />
+    </joint>
+
+    <joint name="wrist_rotate">
+      <param name="axis_idx">5</param>
+      
+      <param name="ruckig_max_vel">${radians(230)}</param>
+      <param name="ruckig_max_acc">${radians(4200)}</param>
+      <param name="ruckig_max_jrk">${radians(115000)}</param>
+
+      <param name="vr_TorqConst">1.0</param>
+
+      <xacro:all_command_and_state_interfaces />
+    </joint>
+
+  </ros2_control>
+
+</robot>

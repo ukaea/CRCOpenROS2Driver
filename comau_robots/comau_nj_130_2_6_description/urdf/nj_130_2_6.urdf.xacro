@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<robot name="comau_nj_130_2_6" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find comau_nj_130_2_6_description)/urdf/nj_130_2_6_arm.urdf.xacro"/>
+  <xacro:include filename="$(find comau_nj_130_2_6_description)/urdf/nj_130_2_6.ros2_control.xacro"/>
+  
+</robot>
