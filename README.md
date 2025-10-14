@@ -93,7 +93,7 @@ Follow the steps below on an **Ubuntu 24.04** terminal (preferably running the R
 
   #### Install ROS 2 base and dev tools
   
-  Replace `ROS_DISTRO` with `rolling`, `jazzy` as required:
+  Replace `ROS_DISTRO` with `jazzy` as required:
   ```bash
   export ROS_DISTRO=jazzy 
   ``` 
