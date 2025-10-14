@@ -23,10 +23,11 @@ A ROS 2 package with useful launch files as explained in the usage section of th
 
 # Release Status
 
-**Overall pipeline status**
+| ROS 2 Distro | **Humble** | **Jazzy** | **Rolling** |
+|---|---|---|---|
+| **Branch** | `humble` | `jazzy` | `main` |
+| **Release status** | [![CI (humble)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=humble&event=push)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml) | [![CI (jazzy)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=jazzy&event=push)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml) | [![CI (main)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml) |
 
-<!-- Overall pipeline status -->
-[![CI](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=jazzy)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml)
 
 
 # Getting Started
