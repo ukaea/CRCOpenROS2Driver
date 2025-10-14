@@ -32,7 +32,8 @@ A ROS 2 package with useful launch files as explained in the usage section of th
 
 
 ## Installation
-Follow these steps on a **Native Ubuntu 24.04** terminal. We officially support **Rolling** and **Jazzy** (Humble is unmaintained on this branch).
+
+Follow these steps on a native **Ubuntu 24.04** terminal. This ROS 2 control driver officially supports Rolling on the main branch, Jazzy on a separate actively maintained branch, and includes an unmaintained Humble branch for legacy use.
 
 <details>
   <summary> How to install ROS 2 Rolling </summary>
