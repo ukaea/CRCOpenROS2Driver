@@ -33,14 +33,14 @@ A ROS 2 package with useful launch files as explained in the usage section of th
 
 ## Installation
 
-Follow the steps below on an **Ubuntu 24.04** terminal (preferably running the Real-time Ubuntu kernel with the PREEMPT_RT patch for improved determinism and low latency). This ROS 2 control driver officially supports Rolling on the main branch, Jazzy on a separate actively maintained branch, and includes an unmaintained Humble branch for legacy use.
+Follow the steps below on an **Ubuntu 22.04** terminal (preferably running the Real-time Ubuntu kernel with the PREEMPT_RT patch for improved determinism and low latency). This ROS 2 control driver officially supports Rolling on the main branch, Jazzy on a separate actively maintained branch, and includes an unmaintained Humble branch for legacy use.
 
 <details>
-  <summary> How to install ROS 2 Rolling </summary>
+  <summary> How to install ROS 2 Humble </summary>
 
-  For a complete, step-by-step walkthrough, please see the official ROS 2 Rolling installation guide:  
+  For a complete, step-by-step walkthrough, please see the official ROS 2 Humble installation guide:  
 
-  https://docs.ros.org/en/rolling/Installation.html
+  https://docs.ros.org/en/humble/Installation.html
 
   #### System update & essentials
 
@@ -53,7 +53,9 @@ Follow the steps below on an **Ubuntu 24.04** terminal (preferably running the R
   ```bash
   sudo apt-get install -y --no-install-recommends \
   locales curl gnupg2 lsb-release software-properties-common \
-  build-essential ca-certificates
+  build-essential ca-certificates wget
+
+  sudo add-apt-repository -y universe
   ```
 
   #### Configure locale
@@ -91,9 +93,9 @@ Follow the steps below on an **Ubuntu 24.04** terminal (preferably running the R
 
   #### Install ROS 2 base and dev tools
   
-  Replace `ROS_DISTRO` with `rolling`, `jazzy` as required:
+  Replace `ROS_DISTRO` with `humble` as required:
   ```bash
-  export ROS_DISTRO=rolling 
+  export ROS_DISTRO=humble 
   ``` 
 
   ```bash
@@ -112,7 +114,7 @@ Follow the steps below on an **Ubuntu 24.04** terminal (preferably running the R
 <details>
   <summary> Using Docker </summary>
 
-  **Prereqs:** Docker and Docker compose installed. The provided Dockerfile sets up Ubuntu 24.04 with ROS 2 (default: `${ROS_DISTRO}=jazzy`).  
+  **Prereqs:** Docker and Docker compose installed. The provided Dockerfile sets up Ubuntu 22.04 with ROS 2.  
   You can change the `ROS_DISTRO` build argument in the dockerfile to use a different supported distribution.
 
 
