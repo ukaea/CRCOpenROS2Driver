@@ -2,19 +2,19 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ humble ]
   pull_request:
-    branches: [ main ]
+    branches: [ humble ]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build (rolling on ubuntu-24.04)
-    runs-on: ubuntu-24.04
+    name: Build (humble on ubuntu-22.04)
+    runs-on: ubuntu-22.04
 
     env:
       DEBIAN_FRONTEND: noninteractive
-      ROS_DISTRO: rolling
+      ROS_DISTRO: humble
       ORL_DRIVER_ROOT: /usr
 
     steps:
@@ -23,6 +23,7 @@ jobs:
 
       - name: Show environment
         run: |
+          echo "Branch: ${{ github.ref_name }}"
           echo "ROS_DISTRO=$ROS_DISTRO"
           uname -a
           . /etc/os-release
@@ -71,21 +72,12 @@ jobs:
           set -e
           if ls crcopen_hardware/lib/orl_driver-*.deb >/dev/null 2>&1; then
             echo "Found ORL .deb, installing…"
-            # Use a path so apt treats it as a file, not a package name:
-            # either absolute path or './' prefix both work.
             DEB_PATH="$(ls -1 crcopen_hardware/lib/orl_driver-*.deb | head -n1)"
             sudo apt-get update -y
-            # Option A (apt can install local files when prefixed with ./)
             sudo apt-get install -y "./${DEB_PATH}" \
               || (sudo dpkg -i "./${DEB_PATH}" && sudo apt-get -f install -y)
-
-            # Discover the actual install prefix of orl_driver
             ORL_DRIVER_ROOT="$(dpkg -L orl_driver | grep -E '/include$' | head -n1 | xargs dirname || true)"
             [ -z "$ORL_DRIVER_ROOT" ] && ORL_DRIVER_ROOT=/usr
-            echo "ORL_DRIVER_ROOT=${ORL_DRIVER_ROOT}"
-
-            # Export prefix and common search paths for subsequent steps
-            # (point CMAKE_PREFIX_PATH to the INSTALL PREFIX, which is safest)
             {
               echo "ORL_DRIVER_ROOT=${ORL_DRIVER_ROOT}"
               echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH:+$CMAKE_PREFIX_PATH:}${ORL_DRIVER_ROOT}"

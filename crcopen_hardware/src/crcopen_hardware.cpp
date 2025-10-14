@@ -655,7 +655,7 @@ namespace crcopen_hardware
       return hardware_interface::return_type::ERROR;
     }
 
-    if (next_control_mode != ControlMode::LISTEN && get_lifecycle_state().label() != hardware_interface::lifecycle_state_names::ACTIVE){
+    if (next_control_mode != ControlMode::LISTEN && this->get_state().label() != hardware_interface::lifecycle_state_names::ACTIVE){
       RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "Rejecting command mode switch: Hardware interface not ACTIVE so command mode switch out of LISTEN is not allowed.");
       return hardware_interface::return_type::ERROR;
     }
@@ -669,7 +669,7 @@ namespace crcopen_hardware
   {
     RCLCPP_INFO(rclcpp::get_logger(LOG_NAME), "perform_command_mode_switch");
 
-    if (next_control_mode != ControlMode::LISTEN && get_lifecycle_state().label() != hardware_interface::lifecycle_state_names::ACTIVE){
+    if (next_control_mode != ControlMode::LISTEN && this->get_state().label() != hardware_interface::lifecycle_state_names::ACTIVE){
       RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "Hardware interface not ACTIVE so command mode switch out of LISTEN is not allowed.");
       return hardware_interface::return_type::ERROR;
     }

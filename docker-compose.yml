@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        ROS_DISTRO: ${ROS_DISTRO:-rolling}
+        ROS_DISTRO: ${ROS_DISTRO:-humble}
     image: comau_driver:dev
     container_name: comau_dev
     stdin_open: true
@@ -13,7 +13,7 @@ services:
     ipc: host
     privileged: true
     environment:
-      - ROS_DISTRO=${ROS_DISTRO:-rolling}
+      - ROS_DISTRO=${ROS_DISTRO:-humble}
       - DISPLAY=${DISPLAY}
       - QT_X11_NO_MITSHM=1
     volumes:

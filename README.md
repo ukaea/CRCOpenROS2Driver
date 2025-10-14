@@ -5,13 +5,13 @@ system by an external Linux computer. For more detail on CRCOpen see the documen
 
   > Note: The orl_driver binary included in this repository is provided by Comau and must be used only in compliance with an existing CRCOpen agreement.
 
-ros2_control is the primary framework within the ROS 2 ecosystem for managing control and access to robot hardware. Modularity is achieved through separate packages for hardware interfaces, robot descriptions, and controllers. For more detail, users should familiarise themselves with the [ros2_control documentation](https://control.ros.org/rolling/index.html)
+ros2_control is the primary framework within the ROS 2 ecosystem for managing control and access to robot hardware. Modularity is achieved through separate packages for hardware interfaces, robot descriptions, and controllers. For more detail, users should familiarise themselves with the [ros2_control documentation](https://control.ros.org/humble/index.html)
 
 This repository contains:
 
 __crcopen_hardware__
 
-This contains the ROS 2 driver itself. In ros2_control parlance, this package is a [Hardware Component](https://control.ros.org/rolling/doc/getting_started/getting_started.html#hardware-components) of the System type.
+This contains the ROS 2 driver itself. In ros2_control parlance, this package is a [Hardware Component](https://control.ros.org/humble/doc/getting_started/getting_started.html#hardware-components) of the System type.
 
 __comau_robots__
 
@@ -251,7 +251,7 @@ Edit the paramters in `comau_**_description/urdf/**.ros2_control.xacro`. The IP 
 > [!CAUTION]
 > Operating an industrial robot can be dangerous. Users are expected to have appropriate risk assessment and mitigation in place. This ROS2 interface is experimental and should not be used for any safety function.
 
-This driver conforms as much as possible to the standards of [ros2_control](https://control.ros.org/rolling/index.html) so advanced users may use it in this way.
+This driver conforms as much as possible to the standards of [ros2_control](https://control.ros.org/humble/index.html) so advanced users may use it in this way.
 
 The `comau_bringup` package provides some launch files for convenience to be used as follows:
 
@@ -269,7 +269,7 @@ This starts the core functionality in addition to a topic-based controller of th
 
 ### Other ros2_control controllers
 
-If you want a controller beyond the built-in **topic-based** ones, you can implement a custom ros2_control controller. See the [official guide](https://control.ros.org/rolling/doc/ros2_controllers/doc/writing_new_controller.html) for a step-by-step walkthrough.
+If you want a controller beyond the built-in **topic-based** ones, you can implement a custom ros2_control controller. See the [official guide](https://control.ros.org/humble/doc/ros2_controllers/doc/writing_new_controller.html) for a step-by-step walkthrough.
 
 You can also reuse one of the generic controllers provided by [ros2_controllers](https://github.com/ros-controls/ros2_controllers). Some of these use topics in different ways (for example, a PID controller can take a reference input from a topic), while others are action- or service-driven (e.g. trajectory controllers).
 
