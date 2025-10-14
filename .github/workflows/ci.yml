@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (rolling on ubuntu-24.04)
+    runs-on: ubuntu-24.04
+
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      ROS_DISTRO: rolling
+      ORL_DRIVER_ROOT: /usr
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show environment
+        run: |
+          echo "ROS_DISTRO=$ROS_DISTRO"
+          uname -a
+          . /etc/os-release
+          echo "UBUNTU_CODENAME=$UBUNTU_CODENAME"
+
+      - name: Base tools & locale
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends \
+            locales curl gnupg2 lsb-release build-essential ca-certificates wget
+          sudo locale-gen en_US.UTF-8
+          sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+
+      - name: Add ROS 2 apt repository
+        run: |
+          echo ">>> Configuring ROS 2 apt repo for ${ROS_DISTRO}"
+          curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+            | gpg --dearmor | sudo tee /usr/share/keyrings/ros-archive-keyring.gpg >/dev/null
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
+            http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" \
+            | sudo tee /etc/apt/sources.list.d/ros2.list
+          sudo apt-get update -y
+
+      - name: Install ROS 2 core + dev tools
+        run: |
+          sudo apt-get install -y --no-install-recommends \
+            ros-${ROS_DISTRO}-ros-base \
+            ros-${ROS_DISTRO}-xacro \
+            ros-${ROS_DISTRO}-ros2-control \
+            ros-${ROS_DISTRO}-ros2-controllers \
+            python3-colcon-common-extensions python3-argcomplete \
+            python3-pip python3-rosdep
+
+      - name: Initialize rosdep
+        run: |
+          sudo rosdep init || true
+          rosdep update
+
+      - name: Resolve ROS package dependencies
+        run: |
+          source /opt/ros/${ROS_DISTRO}/setup.bash
+          rosdep install --from-paths . -r --rosdistro ${ROS_DISTRO} --ignore-src -y
+
+      - name: Install ORL driver if present
+        run: |
+          set -e
+          if ls crcopen_hardware/lib/orl_driver-*.deb >/dev/null 2>&1; then
+            echo "Found ORL .deb, installing…"
+            # Use a path so apt treats it as a file, not a package name:
+            # either absolute path or './' prefix both work.
+            DEB_PATH="$(ls -1 crcopen_hardware/lib/orl_driver-*.deb | head -n1)"
+            sudo apt-get update -y
+            # Option A (apt can install local files when prefixed with ./)
+            sudo apt-get install -y "./${DEB_PATH}" \
+              || (sudo dpkg -i "./${DEB_PATH}" && sudo apt-get -f install -y)
+
+            # Discover the actual install prefix of orl_driver
+            ORL_DRIVER_ROOT="$(dpkg -L orl_driver | grep -E '/include$' | head -n1 | xargs dirname || true)"
+            [ -z "$ORL_DRIVER_ROOT" ] && ORL_DRIVER_ROOT=/usr
+            echo "ORL_DRIVER_ROOT=${ORL_DRIVER_ROOT}"
+
+            # Export prefix and common search paths for subsequent steps
+            # (point CMAKE_PREFIX_PATH to the INSTALL PREFIX, which is safest)
+            {
+              echo "ORL_DRIVER_ROOT=${ORL_DRIVER_ROOT}"
+              echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH:+$CMAKE_PREFIX_PATH:}${ORL_DRIVER_ROOT}"
+              echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${ORL_DRIVER_ROOT}/lib:${ORL_DRIVER_ROOT}/lib64"
+              echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH:+$PKG_CONFIG_PATH:}${ORL_DRIVER_ROOT}/lib/pkgconfig:${ORL_DRIVER_ROOT}/lib64/pkgconfig"
+            } >> "$GITHUB_ENV"
+          else
+            echo "No ORL .deb found (crcopen_hardware/lib/orl_driver-*.deb). Skipping."
+          fi
+
+      - name: Build with colcon
+        run: |
+          set -e
+          source /opt/ros/${ROS_DISTRO}/setup.bash
+          colcon build --event-handlers console_direct+
