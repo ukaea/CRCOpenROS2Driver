@@ -11,11 +11,11 @@ This repository contains:
 
 __crcopen_hardware__
 
-This contains the ROS 2 driver itself. In ros2_control parlance, this package is a [Hardware Component](https://control.ros.org/humble/doc/getting_started/getting_started.html#hardware-components) of the System type.
+This contains the ROS 2 driver itself. In ros2_control parlance, this package is a [Hardware Component](https://control.ros.org/jazzy/doc/getting_started/getting_started.html#hardware-components) of the System type.
 
 __comau_robots__
 
-A directory of robot description packages for Comau robots. At the moment only the [Comau NJ130-2.6](https://www.comau.com/en/our-offer/products-and-solutions/robot-team/nj_130_2_6/) is included. 
+A directory of robot description packages for Comau robots. At the moment only the [Comau NJ130-2.6](https://www.comau.com/en/our-offer/products-and-solutions/robot-team/nj-130-2-6/) is included. 
 
 __comau_bringup__
 
@@ -24,6 +24,7 @@ A ROS 2 package with useful launch files as explained in the usage section of th
 # Release Status
 
 **Overall pipeline status**
+
 <!-- Overall pipeline status -->
 [![CI](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=jazzy)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml)
 
@@ -350,7 +351,7 @@ The above is made easier by the single launch file
 
 ## Goals, Disclaimer & Support
 
-This ROS2 driver was developed by UKAEA RACE Cybernetics engineers for internal research. While it has been tested extensively on our Comau NJ-130-2.6, it is provided as-is for research and development use only. **It is not intended for production or safety-critical applications** and may contain unforeseen bugs or limitations.
+This ROS2 driver was developed by UKAEA [RACE](https://www.ukaea.org/expertise/robotics/) Cybernetics engineers for internal research. While it has been tested extensively on our Comau NJ-130-2.6, it is provided as-is for research and development use only. **It is not intended for production or safety-critical applications** and may contain unforeseen bugs or limitations.
 
 **Community-maintained**
 - At the time of this writing, we are actively building and testing against ROS 2 Rolling and Jazzy on Ubuntu 24.04; future support for newer ROS 2 or Ubuntu releases will depend on available resources.
