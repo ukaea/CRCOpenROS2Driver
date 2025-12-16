@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "UKAEA ROS 2 Driver for Comau CRCOpen"
+authors:
+  - family-names: "Slater"
+    given-names: "Adam"
+  - family-names: "Saleem"
+    given-names: "Abdullah"
+version: 1.0.0
+date-released: 2025-10-14
+url: "https://github.com/ukaea/CRCOpenROS2Driver"
+license: "Apache-2.0"
+doi: "10.5281/zenodo.TBD"
