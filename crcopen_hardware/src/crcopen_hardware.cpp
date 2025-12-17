@@ -112,10 +112,11 @@ namespace crcopen_hardware
     return;
   }
 
-  hardware_interface::CallbackReturn CRCOpenHardware::on_init(const hardware_interface::HardwareInfo &info)
+  hardware_interface::CallbackReturn CRCOpenHardware::on_init(const hardware_interface::HardwareComponentInterfaceParams & params)
   {
+      
     RCLCPP_INFO(rclcpp::get_logger(LOG_NAME), "on_init");
-    if (hardware_interface::SystemInterface::on_init(info) != hardware_interface::CallbackReturn::SUCCESS)
+    if (hardware_interface::SystemInterface::on_init(params) != hardware_interface::CallbackReturn::SUCCESS)
     {
       return hardware_interface::CallbackReturn::ERROR;
     }
