@@ -1,5 +1,7 @@
 # Comau CRC Open ROS2 Driver
 
+[![DOI](https://zenodo.org/badge/1075309612.svg)](https://doi.org/10.5281/zenodo.17969100)
+
 CRCOpen is an option available on Comau robot controller (CRC) cabinets to enable control of a robotic
 system by an external Linux computer. For more detail on CRCOpen see the documentation by Comau or [click here](https://www.comau.com/en/our-offer/products-and-solutions/robotic-control-and-software/open-controller/). This driver is developed on top of CRCOpen to allow the user to be able to unlock the ROS 2 ecosystem for research and development use.
 
