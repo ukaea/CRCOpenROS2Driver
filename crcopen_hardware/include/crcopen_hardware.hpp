@@ -88,7 +88,7 @@ public:
    * @return SUCCESS if initialized; FAILURE if parameters are missing/invalid; ERROR otherwise.
    * @post UNCONFIGURED state on success.
    */
-  hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
+  hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareComponentInterfaceParams & params) override;
 
   /**
    * @brief Export per-joint state interfaces.
