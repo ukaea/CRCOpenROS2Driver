@@ -32,29 +32,36 @@ add_library(
 )
 target_include_directories(
   ${PROJECT_NAME}
-  PRIVATE
-  include
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
-ament_target_dependencies(
-  ${PROJECT_NAME}
-  rclcpp
-  rclcpp_lifecycle
-  lifecycle_msgs
-  hardware_interface
-  pluginlib
-  ruckig
-  orl_driver
-  )
-target_link_libraries(${PROJECT_NAME}  
-  orl_driver
-  ruckig::ruckig
+
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    ${rclcpp_TARGETS}
+    ${rclcpp_lifecycle_TARGETS}
+    ${lifecycle_msgs_TARGETS}
+    ${hardware_interface_TARGETS}
+    ${pluginlib_TARGETS}
+    ${ruckig_TARGETS}
+    ${orl_driver_TARGETS}
+)
+
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    orl_driver
+    ruckig::ruckig
 )
 
 pluginlib_export_plugin_description_file(hardware_interface crcopen_hardware.xml)
 
 install(
   TARGETS ${PROJECT_NAME}
-  DESTINATION lib
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 install(
   DIRECTORY include/
@@ -72,12 +79,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_export_include_directories(
-  include
-)
-ament_export_libraries(
-  ${PROJECT_NAME}
-)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(
   rclcpp
   rclcpp_lifecycle
