@@ -8,6 +8,7 @@
   <license>Apache 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>ros2_control_cmake</build_depend>
 
   <depend>rclcpp</depend>
   <depend>rclcpp_lifecycle</depend>
@@ -15,7 +16,7 @@
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
   <depend>ruckig</depend>
-  <depend>orl_driver</depend>
+  <!-- Note that orl_driver is not listed because it does not have a registered rosdep key -->
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

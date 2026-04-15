@@ -2,8 +2,8 @@
 #define CRCOPEN_HARDWARE__CRCOPEN_HARDWARE_HPP_
 
 // Comau CRCOpen Libraries
-#include "orl_driver.h"
-#include "orl_util.h"
+#include <orl_driver.h>
+#include <orl_util.h>
 
 // Ruckig Online Trajectory Generation
 #include <ruckig/ruckig.hpp>

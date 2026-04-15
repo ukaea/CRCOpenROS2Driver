@@ -1,8 +1,8 @@
 # Contribution Guidelines
 
-Thank you for your interest in contributing to the Comau CRC Open ROS2 Driver. We welcome contributions of all kinds—bug reports, documentation improvements, feature enhancements, and new robot descriptions.
+PRs are welcome to improve the driver. Additions of robot descriptions for other Comau models, where these have been verified on a real system, are particularly encouraged.
 
----
+Thank you for your interest in contributing to the Comau CRC Open ROS 2 Driver. We welcome contributions of all kinds—bug reports, documentation improvements, feature enhancements, and new robot descriptions.
 
 ## Issue Tracking
 
@@ -16,8 +16,6 @@ If you encounter a bug, have a question, or would like to suggest an improvement
 
 *Please do not add labels yourself; maintainers will handle labeling.*
 
----
-
 ## Submitting a Pull Request
 
 1. **Discuss your change**: Open an issue to propose significant changes or to gather feedback.
@@ -30,8 +28,6 @@ Our CI will run build jobs (`build-rolling`, `build-jazzy`, `build-kilted`) to e
 
 > **Quick-start for new robot models:**
 > We’re keen to add more models! Once your description matches the example structure, builds cleanly and you've tested on hardware, open a PR directly against `main`.
-
----
 
 ## Adding a New Comau Robot Model
 
@@ -52,14 +48,11 @@ We currently support the Comau NJ-130-2.6. To add support for another Comau CRCO
 
 4. **Author the URDF/Xacro**    
    * In `urdf/`, update `*.urdf.xacro`:
-
      * Define the kinematic chain with correct link/joint names.
      * Use the helper macro for visual and collision geometry.
    * Create/modify `<model>.ros2_control.xacro`:
-
      * Populate `<hardware>` plugin parameters (`lpc_addr`, `crc_addr`).
      * For each `<joint>`, set:
-
        * `axis_idx` matching CRCOpen axis numbering.
        * `ruckig_max_vel`, `ruckig_max_acc`, `ruckig_max_jrk` based on robot specs.
        * `cal_data` from teach pendant (Setup → Motion → Calib).
@@ -79,10 +72,6 @@ We currently support the Comau NJ-130-2.6. To add support for another Comau CRCO
 7. **Submit a Pull Request**
    * Include your new description package under `comau_robots/`.
    * Reference your issue or discussion in the PR description.
-
-By following this pattern, your new robot model will integrate seamlessly with the existing driver architecture and pass our CI checks.
-
----
 
 ## Licensing
 
