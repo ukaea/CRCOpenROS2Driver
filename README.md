@@ -2,6 +2,14 @@
 
 [![DOI](https://zenodo.org/badge/1075309612.svg)](https://doi.org/10.5281/zenodo.17969100)
 
+# Release Status
+
+| ROS 2 Distro | **Humble** | **Jazzy** | **Rolling** |
+|---|---|---|---|
+| **Branch** | `humble` | `jazzy` | `main` |
+| **Release status** | [![CI (humble)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=humble&event=push)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml) | [![CI (jazzy)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=jazzy&event=push)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml) | [![CI (main)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml) |
+
+
 CRCOpen is an option available on Comau robot controller (CRC) cabinets to enable control of a robotic
 system by an external Linux computer. For more detail on CRCOpen see the documentation by Comau or [click here](https://www.comau.com/en/our-offer/products-and-solutions/robotic-control-and-software/open-controller/). This driver is developed on top of CRCOpen to allow the user to be able to unlock the ROS 2 ecosystem for research and development use.
 
