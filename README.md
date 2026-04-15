@@ -2,8 +2,6 @@
 
 [![DOI](https://zenodo.org/badge/1075309612.svg)](https://doi.org/10.5281/zenodo.17969100)
 
-# Release Status
-
 | ROS 2 Distro | **Humble** | **Jazzy** | **Rolling** |
 |---|---|---|---|
 | **Branch** | `humble` | `jazzy` | `main` |
