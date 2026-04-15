@@ -120,7 +120,7 @@ This starts the core functionality of the driver, including a controller manager
 ros2 launch comau_bringup comau_control.launch.py mode:=*
 ```
 
-This starts the core functionality in addition to a topic-based controller of the specified mode (`position`, `velocity`, `acceleration`, `current`, `torque`). The robot can then be controlled by sending `Float64MultiArray` messages to the `/*_controller/commands` topic.
+This starts the core functionality in addition to a topic-based controller of the specified mode (`position`, `velocity`, `acceleration`, `current`, `effort`). The robot can then be controlled by sending `Float64MultiArray` messages to the `/*_controller/commands` topic.
 
 ### Other ros2_control controllers
 
@@ -142,13 +142,13 @@ The hardware will refuse to go into an `active` state unless the teach pendant i
 
 Joint data will only be published for joints in **open mode**. Additionally, any command interface claims made to joints not in open mode will be refused automatically.
 
-## Joint States
+### Joint States
 
-The `/joint_states` topic publishes the measured position (rad), velocity (rad/s) and effort (ampere peak) of each joint.
+The `/joint_states` topic publishes the measured position (rad), velocity (rad/s) and effort (Nm, calculated from measured current using both `vr_TorqConst` and `vr_TransmissionRatio`) of each joint.
 
-The `/dynamic_joint_states` topic additionally includes acceleration (rad/s^2) which is not measured but an indication of the internal interpolator when using position, velocity or acceleration control modes; and torque (Nm) which is calculated using the scaling factor `vr_TorqConst` from the measured current.
+The `/dynamic_joint_states` topic additionally includes current (A) and acceleration (rad/s^2) which is not measured but an indication of the internal interpolator when using position, velocity or acceleration control modes.
 
-## Control modes
+### Control modes
 
 Allowed command interface combinations:
 - "position"
@@ -165,12 +165,12 @@ Allowed command interface combinations:
     - Send current [A] commands at any interval. Target positions sent to CRC are internally predicted given the previous velocity.
 - "current" and "position_direct"
     - Send current [A] commands and CRC target positions [rad] directly. Requires controller to update at a high rate.
-- "torque"
-    - Send torque [Nm] commands at any interval. Torque values are internally converted to current [A] using the vr_TorqConst factor in the xacro then handled as "current".
-- "torque" and "position_direct"
-    - Send torque [Nm] and CRC target positions [rad] directly. Torque values are internally converted to current [A] using the vr_TorqConst factor in the xacro then handled as "current".
+- "effort"
+    - Send effort [Nm] commands at any interval. Effort is interpreted as joint torque, then internally converted to current [A] using `I = τ / (vr_TorqConst * vr_TransmissionRatio)` and handled as "current".
+- "effort" and "position_direct"
+    - Send effort [Nm] and CRC target positions [rad] directly. Effort is interpreted as joint torque, then internally converted to current [A] using `I = τ / (vr_TorqConst * vr_TransmissionRatio)` and handled as "current".
 
-Position, velocity and acceleration can have unclaimed joints because they can be held constant. Current and torque need active control of all axes with open mode enabled on the teach pendant.
+Position, velocity and acceleration can have unclaimed joints because they can be held constant. Current and effort need active control of all axes with open mode enabled on the teach pendant.
 
 ### Using different robot models
 

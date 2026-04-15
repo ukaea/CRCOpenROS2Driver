@@ -21,7 +21,7 @@ controller_manager:
     current_controller:
       type: forward_command_controller/ForwardCommandController
 
-    torque_controller:
+    effort_controller:
       type: forward_command_controller/ForwardCommandController
 
     joint_trajectory_controller:
@@ -32,8 +32,6 @@ joint_state_broadcaster:
   # If 'joints' and/or 'interfaces' is left blank, all will be published in compiled URDF order.
   # Listing them explictly defines the order in the published message.
   ros__parameters:
-    map_interface_to_joint_state: 
-      effort: current
     joints:
       - waist
       - shoulder
@@ -45,6 +43,7 @@ joint_state_broadcaster:
       - position
       - velocity
       - current
+      - effort
 
 position_controller:
   ros__parameters:
@@ -88,7 +87,7 @@ current_controller:
       - wrist_rotate
     interface_name: current
 
-torque_controller:
+effort_controller:      
   ros__parameters:
     joints:
       - waist
@@ -97,7 +96,7 @@ torque_controller:
       - forearm_roll
       - wrist_angle
       - wrist_rotate
-    interface_name: torque
+    interface_name: effort 
 
 joint_trajectory_controller:
   ros__parameters:
@@ -108,12 +107,3 @@ joint_trajectory_controller:
       - forearm_roll
       - wrist_angle
       - wrist_rotate
-    command_interfaces:
-      - position
-      # - velocity
-      # - effort
-    state_interfaces:
-      - position
-      - velocity
-      # - effort
-    action_monitor_rate: 1.0

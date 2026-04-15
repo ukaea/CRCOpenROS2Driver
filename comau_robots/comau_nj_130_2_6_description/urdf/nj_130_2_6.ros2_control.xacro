@@ -7,13 +7,13 @@
     <command_interface name="velocity"/>
     <command_interface name="acceleration"/>
     <command_interface name="current"/>
-    <command_interface name="torque"/>
+    <command_interface name="effort"/>
     
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <state_interface name="acceleration"/>
     <state_interface name="current"/>
-    <state_interface name="torque"/>
+    <state_interface name="effort"/>
   </xacro:macro>
 
   <ros2_control name="comau_nj_130_2_6" type="system">
@@ -44,6 +44,7 @@
       <param name="ruckig_max_jrk">${radians(10000)}</param>
 
       <param name="vr_TorqConst">1.0</param>
+      <param name="vr_TransmissionRatio">1.0</param>
 
       <xacro:all_command_and_state_interfaces />
     </joint>
@@ -56,6 +57,7 @@
       <param name="ruckig_max_jrk">${radians(10000)}</param>
 
       <param name="vr_TorqConst">1.0</param>
+      <param name="vr_TransmissionRatio">1.0</param>
 
       <xacro:all_command_and_state_interfaces />
     </joint>
@@ -68,6 +70,7 @@
       <param name="ruckig_max_jrk">${radians(15000)}</param>
 
       <param name="vr_TorqConst">1.0</param>
+      <param name="vr_TransmissionRatio">1.0</param>
 
       <xacro:all_command_and_state_interfaces />
     </joint>
@@ -80,6 +83,7 @@
       <param name="ruckig_max_jrk">${radians(90000)}</param>
 
       <param name="vr_TorqConst">1.0</param>
+      <param name="vr_TransmissionRatio">1.0</param>
 
       <xacro:all_command_and_state_interfaces />
     </joint>
@@ -92,6 +96,7 @@
       <param name="ruckig_max_jrk">${radians(90000)}</param>
 
       <param name="vr_TorqConst">1.0</param>
+      <param name="vr_TransmissionRatio">1.0</param>
 
       <xacro:all_command_and_state_interfaces />
     </joint>
@@ -104,6 +109,7 @@
       <param name="ruckig_max_jrk">${radians(115000)}</param>
 
       <param name="vr_TorqConst">1.0</param>
+      <param name="vr_TransmissionRatio">1.0</param>
 
       <xacro:all_command_and_state_interfaces />
     </joint>

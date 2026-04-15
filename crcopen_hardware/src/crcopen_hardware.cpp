@@ -203,6 +203,26 @@ namespace crcopen_hardware
         return CallbackReturn::FAILURE;
       }
 
+      // Get motor torque constant Kt [Nm/A] from xacro
+      try {
+        joints_[i].vr_TorqConst = std::stod(info_.joints[i].parameters.at("vr_TorqConst"));
+      } catch (const std::out_of_range &e) {
+        RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME),
+                    "joint '%s' missing 'vr_TorqConst' (Nm/A) in ros2_control xacro",
+                    info_.joints[i].name.c_str());
+        return CallbackReturn::FAILURE;
+      }
+
+      // Get transmission ratio N [motor rev / joint rev] from xacro
+      try {
+        joints_[i].vr_TransmissionRatio = std::stod(info_.joints[i].parameters.at("vr_TransmissionRatio"));
+      } catch (const std::out_of_range &e) {
+        RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME),
+                    "joint '%s' missing 'vr_TransmissionRatio' in ros2_control xacro",
+                    info_.joints[i].name.c_str());
+        return CallbackReturn::FAILURE;
+      }
+
       // Fill joint state and command with defaults
       joints_[i].state.position       = std::numeric_limits<double>::quiet_NaN();
       joints_[i].state.velocity       = std::numeric_limits<double>::quiet_NaN();
@@ -237,7 +257,7 @@ namespace crcopen_hardware
       state_interfaces.emplace_back(hardware_interface::StateInterface(
           joints_[i].name, "current", &joints_[i].state.current));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          joints_[i].name, "torque", &joints_[i].state.torque));
+          joints_[i].name, "effort", &joints_[i].state.torque));
     }
 
     return state_interfaces;
@@ -260,7 +280,7 @@ namespace crcopen_hardware
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
           joints_[i].name, "current", &joints_[i].command.current));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          joints_[i].name, "torque", &joints_[i].command.torque));
+          joints_[i].name, hardware_interface::HW_IF_EFFORT, &joints_[i].command.torque));
     }
 
     return command_interfaces;
@@ -594,10 +614,11 @@ namespace crcopen_hardware
       }
       // Position and velocity can have unclaimed joints because they can be held constant. Current/Torque need active control.
       // Check all are claimed if Current/Torque
-      if ((start_command_modes.front() == "current" || start_command_modes.front() == "torque")
+      if ((start_command_modes.front() == "current" ||
+          start_command_modes.front() == hardware_interface::HW_IF_EFFORT)
           && start_command_modes.size() != open_joints_.size()
           ){
-        RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOG_NAME), "Rejecting command mode switch: all joints must be claimed if using current or torque mode");
+        RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOG_NAME), "Rejecting command mode switch: all joints must be claimed if using current or effort mode");
         return hardware_interface::return_type::ERROR;
       }
 
@@ -620,7 +641,7 @@ namespace crcopen_hardware
       else if (start_command_modes.front() == "current"){
         next_control_mode = ControlMode::CURRENT;
       }
-      else if (start_command_modes.front() == "torque"){
+      else if (start_command_modes.front() == hardware_interface::HW_IF_EFFORT){
         next_control_mode = ControlMode::TORQUE;
       }
       else {
@@ -643,7 +664,7 @@ namespace crcopen_hardware
       else if (start_command_modes.front() == "current"){
         next_control_mode = ControlMode::CURRENT_POSITION_DIRECT;
       }
-      else if (start_command_modes.front() == "torque"){
+      else if (start_command_modes.front() == hardware_interface::HW_IF_EFFORT){
         next_control_mode = ControlMode::TORQUE_POSITION_DIRECT;
       }
       else {
@@ -821,14 +842,14 @@ namespace crcopen_hardware
     return crc_msg;
   }
 
-  float CRCOpenHardware::trq_to_cur(float torque_Nm, Joint joint){
-    // Convert from torque (Nm) to current (A)
-    return torque_Nm / joint.vr_TorqConst;
+  float CRCOpenHardware::trq_to_cur(float torque_Nm, Joint joint) {
+  // I = τ_joint / (Kt * N), N = vr_TransmissionRatio [motor rev / joint rev]
+  return torque_Nm / (joint.vr_TorqConst * joint.vr_TransmissionRatio);
   }
  
-  float CRCOpenHardware::cur_to_trq(float current_A, Joint joint){
-     // Convert from current (A) to torque (Nm)
-    return current_A * joint.vr_TorqConst;
+  float CRCOpenHardware::cur_to_trq(float current_A, Joint joint) {
+    // τ_joint = I * Kt * N
+    return current_A * joint.vr_TorqConst * joint.vr_TransmissionRatio;
   }
 
 } // namespace crcopen_hardware
