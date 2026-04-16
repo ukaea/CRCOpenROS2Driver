@@ -2,8 +2,8 @@
 #define CRCOPEN_HARDWARE__CRCOPEN_HARDWARE_HPP_
 
 // Comau CRCOpen Libraries
-#include "orl_driver.h"
-#include "orl_util.h"
+#include <orl_driver.h>
+#include <orl_util.h>
 
 // Ruckig Online Trajectory Generation
 #include <ruckig/ruckig.hpp>
@@ -18,6 +18,7 @@
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
+#include "hardware_interface/types/hardware_component_interface_params.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
@@ -59,6 +60,7 @@ struct Joint
   double cal_data;
   double tx_rate;
   double vr_TorqConst;
+  double vr_TransmissionRatio;
 };
 
 /**
@@ -93,7 +95,7 @@ public:
   /**
    * @brief Export per-joint state interfaces.
    *
-   * Exposes state interfaces for position, velocity, acceleration, current, and torque.
+   * Exposes state interfaces for position, velocity, acceleration, current, and effort.
    *
    * @return Vector of StateInterface objects.
    */
@@ -102,7 +104,7 @@ public:
     /**
    * @brief Export per-joint command interfaces.
    *
-   * Exposes command interfaces: position, position_direct, velocity, acceleration, current, torque.
+   * Exposes command interfaces: position, position_direct, velocity, acceleration, current, effort.
    *
    * @return Vector of CommandInterface objects.
    */
@@ -270,7 +272,7 @@ protected:
   float trq_to_cur(float torque_Nm, Joint joint);
   /**
    * Calculate motor current from joint torque
-   * @param torque_Nm Current (amperes)
+   * @param current_A Current (amperes)
    * @param joint Joint struct with calibration constants
    * @return Torque (Newton-Meters)
    */

@@ -1,46 +1,32 @@
-FROM ubuntu:24.04
-
 # ROS distribution to use (rolling | jazzy | humble, etc.)
 ARG ROS_DISTRO=rolling
 
-# ---------- base ----------
-ENV DEBIAN_FRONTEND=noninteractive \
-    ROS_DISTRO=${ROS_DISTRO} \
-    LANG=en_US.UTF-8 \
-    LC_ALL=en_US.UTF-8
-SHELL ["/bin/bash", "-c"]
+FROM ros:$ROS_DISTRO
+# Update system
+RUN apt-get update && apt-get upgrade -y
 
-# Basic tools only
-RUN apt-get update -y \
- && apt-get install -y --no-install-recommends \
-      locales curl gnupg2 lsb-release ca-certificates build-essential wget \
- && update-ca-certificates \
- && locale-gen en_US.UTF-8 \
- && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+SHELL ["/bin/bash", "-c"] 
 
-RUN curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
-    | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg \
- && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
-      http://packages.ros.org/ros2/ubuntu noble main" \
-    > /etc/apt/sources.list.d/ros2.list
-
-RUN apt-get update -y \
- && apt-get install -y --no-install-recommends \
-      ros-${ROS_DISTRO}-ros-base \
-      ros-${ROS_DISTRO}-xacro \
-      ros-${ROS_DISTRO}-ros2-control \
-      ros-${ROS_DISTRO}-ros2-controllers \
-      python3-colcon-common-extensions python3-argcomplete \
-      python3-pip python3-rosdep
-
-# Workspace (clean, standard name)
-RUN mkdir -p /ros2_ws/src
+# Create a workspace and copy packages
 WORKDIR /ros2_ws
+COPY comau_bringup src/comau_bringup
+COPY comau_robots src/comau_robots
+COPY crcopen_hardware src/crcopen_hardware
 
-# Bring in entrypoint + setup script (kept simple & readable)
-COPY --chmod=755 ./scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY --chmod=755 ./scripts/install_dev.sh /usr/local/bin/install_dev.sh
+# Install CRCOpen ORLDriver
+RUN apt-get install -y ./src/crcopen_hardware/lib/orl_driver-*.deb
+
+# Install dependencies
+RUN rosdep update && rosdep install --from-paths . -y --ignore-src
+
+# Build the driver
+RUN source /opt/ros/$ROS_DISTRO/setup.bash && colcon build
+
+# Source ROS and driver packages in future shells
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> /etc/bash.bashrc
+RUN echo "source /ros2_ws/install/setup.bash" >> /etc/bash.bashrc
 
 # Keep the same entrypoint
+COPY --chmod=755 ./entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["bash"]
