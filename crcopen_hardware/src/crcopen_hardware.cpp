@@ -26,7 +26,7 @@ namespace crcopen_hardware
         break;
       };
 
-      for (Joint* joint: open_joints_)
+      for (Joint *joint : open_joints_)
       {
         uint axis_idx = joint->axis_idx;
         ORLD_GetMeasuredPosMR(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, &orld_pos_meas[axis_idx]);
@@ -37,10 +37,10 @@ namespace crcopen_hardware
 
       // INTERPOLATE (relevant for 'position', 'velocity', 'acceleration' control modes)
       ruckig_output.pass_to_input(ruckig_input);
-      int res = ruckig_otg.update(ruckig_input, ruckig_output);
+      ruckig_otg.update(ruckig_input, ruckig_output);
 
       // WRITE
-      for (Joint* joint: open_joints_)
+      for (Joint *joint : open_joints_)
       {
         uint axis_idx = joint->axis_idx;
         switch (control_mode)
@@ -48,63 +48,64 @@ namespace crcopen_hardware
         case ControlMode::LISTEN:
           break;
         case ControlMode::POSITION:
-          // Use ruckig interpolation and convert from rad to motorround
-          orld_pos_target[axis_idx] = rad_to_crc_pos(ruckig_output.new_position[axis_idx], *joint);
+          // Use Ruckig interpolation and convert from link units to motor rounds
+          orld_pos_target[axis_idx] = pos_orld_from_link(ruckig_output.new_position[axis_idx], *joint);
           ORLD_SetTargetPosMR(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_pos_target[axis_idx]);
           break;
         case ControlMode::POSITION_DIRECT:
-          // Use ros2control command and convert from rad to motorround
-          orld_pos_target[axis_idx] = rad_to_crc_pos(joint->command.position, *joint);
+          // Use ros2_control command and convert from link units to motor rounds
+          orld_pos_target[axis_idx] = pos_orld_from_link(joint->command.position, *joint);
           ORLD_SetTargetPosMR(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_pos_target[axis_idx]);
           break;
         case ControlMode::VELOCITY:
         case ControlMode::ACCELERATION:
-          // Use ruckig interpolation for velocity and convert from rad/s to motorround/cycle
-          orld_vel_target[axis_idx] = rad_to_crc_vel(ruckig_output.new_velocity[axis_idx], *joint);
-          // Use ruckig interpolation for position target and convert from rad to motorround           
-          orld_pos_target[axis_idx] = rad_to_crc_pos(ruckig_output.new_position[axis_idx], *joint);
+          // Use Ruckig interpolation for velocity and convert from link velocity to motor rounds per cycle
+          orld_vel_target[axis_idx] = vel_orld_from_link(ruckig_output.new_velocity[axis_idx], *joint);
+          // Use Ruckig interpolation for position target and convert from link units to motor rounds
+          orld_pos_target[axis_idx] = pos_orld_from_link(ruckig_output.new_position[axis_idx], *joint);
           ORLD_SetTargetPosMR(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_pos_target[axis_idx]);
           ORLD_SetTargetSpeedMRxStep(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_vel_target[axis_idx]);
           break;
         case ControlMode::VELOCITY_POSITION_DIRECT:
-          // Use ros2control commands and convert to motorround
-          orld_vel_target[axis_idx] = rad_to_crc_vel(joint->command.velocity, *joint);             
-          orld_pos_target[axis_idx] = rad_to_crc_pos(joint->command.position, *joint);
+          // Use ros2_control commands and convert link units to motor rounds
+          orld_vel_target[axis_idx] = vel_orld_from_link(joint->command.velocity, *joint);
+          orld_pos_target[axis_idx] = pos_orld_from_link(joint->command.position, *joint);
           ORLD_SetTargetPosMR(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_pos_target[axis_idx]);
           ORLD_SetTargetSpeedMRxStep(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_vel_target[axis_idx]);
           break;
         case ControlMode::CURRENT:
           // Use ros2control command
-          orld_cur_target[axis_idx] = joint->command.current;
-           // Cheat position following check by assuming no change in velocity (vel is in mr/cycle so just adding gives movement in one cycle)
+          orld_cur_target[axis_idx] = static_cast<float>(joint->command.current);
+          // Cheat position following check by assuming no change in velocity (vel is in mr/cycle so just adding gives movement in one cycle)
           orld_pos_target[axis_idx] = orld_pos_meas[axis_idx] + orld_vel_meas[axis_idx];
           ORLD_SetTargetPosMR(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_pos_target[axis_idx]);
           ORLD_SetCurrentContribution(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_cur_target[axis_idx]);
           break;
         case ControlMode::CURRENT_POSITION_DIRECT:
           // Use ros2control command
-          orld_cur_target[axis_idx] = joint->command.current;
-          // Use ros2control command and convert from rad to motorround
-          orld_pos_target[axis_idx] = rad_to_crc_pos(joint->command.position, *joint);
+          orld_cur_target[axis_idx] = static_cast<float>(joint->command.current);
+          // Use ros2_control command and convert from link units to motor rounds
+          orld_pos_target[axis_idx] = pos_orld_from_link(joint->command.position, *joint);
           ORLD_SetTargetPosMR(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_pos_target[axis_idx]);
           ORLD_SetCurrentContribution(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_cur_target[axis_idx]);
           break;
         case ControlMode::TORQUE:
-          orld_cur_target[axis_idx] = trq_to_cur(joint->command.torque, *joint);
+          orld_cur_target[axis_idx] = orld_cur_from_eff(joint->command.torque, *joint);
           orld_pos_target[axis_idx] = orld_pos_meas[axis_idx] + orld_vel_meas[axis_idx];
           ORLD_SetTargetPosMR(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_pos_target[axis_idx]);
           ORLD_SetCurrentContribution(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_cur_target[axis_idx]);
           break;
         case ControlMode::TORQUE_POSITION_DIRECT:
-          orld_cur_target[axis_idx] = trq_to_cur(joint->command.torque, *joint);
-          orld_pos_target[axis_idx] = rad_to_crc_pos(joint->command.position, *joint);
+          orld_cur_target[axis_idx] = orld_cur_from_eff(joint->command.torque, *joint);
+          orld_pos_target[axis_idx] = pos_orld_from_link(joint->command.position, *joint);
           ORLD_SetTargetPosMR(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_pos_target[axis_idx]);
           ORLD_SetCurrentContribution(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, orld_cur_target[axis_idx]);
           break;
         }
       }
-      
-      if (ORLD_CycleWrite(ORL_VERB_OFF, ORL_CNTRL1) != ORL_OK){
+
+      if (ORLD_CycleWrite(ORL_VERB_OFF, ORL_CNTRL1) != ORL_OK)
+      {
         RCLCPP_INFO_STREAM(rclcpp::get_logger(LOG_NAME), "CYCLEWRITE NOT OK");
         break;
       };
@@ -112,9 +113,8 @@ namespace crcopen_hardware
     return;
   }
 
-  hardware_interface::CallbackReturn CRCOpenHardware::on_init(const hardware_interface::HardwareComponentInterfaceParams & params)
+  hardware_interface::CallbackReturn CRCOpenHardware::on_init(const hardware_interface::HardwareComponentInterfaceParams &params)
   {
-      
     RCLCPP_INFO(rclcpp::get_logger(LOG_NAME), "on_init");
     if (hardware_interface::SystemInterface::on_init(params) != hardware_interface::CallbackReturn::SUCCESS)
     {
@@ -129,7 +129,7 @@ namespace crcopen_hardware
     }
     catch (const std::out_of_range &e)
     {
-      RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "One (or both) of 'lpc_addr' and 'crc_addr' is not specified in ros_control xacro");
+      RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "One (or both) of 'lpc_addr' and 'crc_addr' is not specified in ros2_control xacro");
       return CallbackReturn::FAILURE;
     }
 
@@ -149,23 +149,24 @@ namespace crcopen_hardware
     }
     catch (const std::out_of_range &e)
     {
-      RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "Not all payload parameters are specified in ros_control xacro");
+      RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "Not all payload parameters are specified in ros2_control xacro");
       return CallbackReturn::FAILURE;
     }
 
     // Configure Ruckig online trajectory generator (otg)
     ruckig_otg.delta_time = 0.0004; // CRCOpen requires update cycle time of 400us
     ruckig_input.synchronization = ruckig::Synchronization::None;
-    ruckig_input.current_position = {0,0,0,0,0,0};
-    ruckig_input.current_velocity = {0,0,0,0,0,0};
-    ruckig_input.current_acceleration = {0,0,0,0,0,0};
-    ruckig_input.target_position = {0,0,0,0,0,0};
-    ruckig_input.target_velocity = {0,0,0,0,0,0};
-    ruckig_input.target_acceleration = {0,0,0,0,0,0};
-    ruckig_input.max_velocity = {1,1,1,1,1,1};
-    ruckig_input.max_acceleration = {1,1,1,1,1,1};
-    // ruckig_input.min_acceleration = {-1,-1,-1,-1,-1,-1};
-    ruckig_input.max_jerk = {1,1,1,1,1,1};
+
+    ruckig_input.current_position.fill(0.0);
+    ruckig_input.current_velocity.fill(0.0);
+    ruckig_input.current_acceleration.fill(0.0);
+    ruckig_input.target_position.fill(0.0);
+    ruckig_input.target_velocity.fill(0.0);
+    ruckig_input.target_acceleration.fill(0.0);
+    ruckig_input.max_velocity.fill(1.0);
+    ruckig_input.max_acceleration.fill(1.0);
+    ruckig_input.max_jerk.fill(1.0);
+
     ruckig_otg.update(ruckig_input, ruckig_output);
 
     // Initialise joints_ array
@@ -183,15 +184,56 @@ namespace crcopen_hardware
       }
       catch (const std::out_of_range &e)
       {
-        RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "axis_idx for joint '%s' not specified in ros_control xacro", info_.joints[i].name.c_str());
+        RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "axis_idx for joint '%s' not specified in ros2_control xacro", info_.joints[i].name.c_str());
         return CallbackReturn::FAILURE;
       }
-      
+      if (joints_[i].axis_idx >= CRCOPEN_MAX_NUM_OPEN_AXES)
+      {
+        RCLCPP_ERROR(
+            rclcpp::get_logger(LOG_NAME), "axis_idx for joint '%s' is %u in ros2_control xacro, but valid values are 0 to %zu",
+            info_.joints[i].name.c_str(), joints_[i].axis_idx, CRCOPEN_MAX_NUM_OPEN_AXES - 1);
+        return CallbackReturn::FAILURE;
+      }
+
+      // Get if axis is linear
+      try
+      {
+        std::string is_linear_str = info_.joints[i].parameters.at("is_linear");
+        joints_[i].is_linear = (is_linear_str == "true" || is_linear_str == "1");
+      }
+      catch (const std::out_of_range &e)
+      {
+        joints_[i].is_linear = false;
+      }
+
+      try
+      {
+        std::string is_linear_str = info_.joints[i].parameters.at("is_linear");
+
+        if (is_linear_str != "true" && is_linear_str != "false" &&
+            is_linear_str != "1" && is_linear_str != "0")
+        {
+          RCLCPP_ERROR(
+              rclcpp::get_logger(LOG_NAME),
+              "joint '%s' has invalid is_linear value '%s'; expected 'true', 'false', '1' or '0'.",
+              info_.joints[i].name.c_str(),
+              is_linear_str.c_str());
+
+          return CallbackReturn::FAILURE;
+        }
+
+        joints_[i].is_linear = (is_linear_str == "true" || is_linear_str == "1");
+      }
+      catch (const std::out_of_range &e)
+      {
+        joints_[i].is_linear = false;
+      }
+
       // Get limits for ruckig
       try
       {
-        ruckig_input.max_velocity[joints_[i].axis_idx]     = std::stod(info_.joints[i].parameters.at("ruckig_max_vel"));
-        ruckig_input.max_jerk[joints_[i].axis_idx]         = std::stod(info_.joints[i].parameters.at("ruckig_max_jrk"));
+        ruckig_input.max_velocity[joints_[i].axis_idx] = std::stod(info_.joints[i].parameters.at("ruckig_max_vel"));
+        ruckig_input.max_jerk[joints_[i].axis_idx] = std::stod(info_.joints[i].parameters.at("ruckig_max_jrk"));
 
         true_max_acceleration[joints_[i].axis_idx] = std::stod(info_.joints[i].parameters.at("ruckig_max_acc"));
         ruckig_input.max_acceleration[joints_[i].axis_idx] = true_max_acceleration[joints_[i].axis_idx];
@@ -202,40 +244,45 @@ namespace crcopen_hardware
         RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "joint '%s' does not have all of ruckig_max_vel, ruckig_max_acc, ruckig_max_jrk specified in ros2_control xacro", info_.joints[i].name.c_str());
         return CallbackReturn::FAILURE;
       }
-
       // Get motor torque constant Kt [Nm/A] from xacro
-      try {
+      try
+      {
         joints_[i].vr_TorqConst = std::stod(info_.joints[i].parameters.at("vr_TorqConst"));
-      } catch (const std::out_of_range &e) {
+      }
+      catch (const std::out_of_range &e)
+      {
         RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME),
-                    "joint '%s' missing 'vr_TorqConst' (Nm/A) in ros2_control xacro",
-                    info_.joints[i].name.c_str());
+                     "joint '%s' missing 'vr_TorqConst' (Nm/A) in ros2_control xacro",
+                     info_.joints[i].name.c_str());
         return CallbackReturn::FAILURE;
       }
 
       // Get transmission ratio N [motor rev / joint rev] from xacro
-      try {
+      try
+      {
         joints_[i].vr_TransmissionRatio = std::stod(info_.joints[i].parameters.at("vr_TransmissionRatio"));
-      } catch (const std::out_of_range &e) {
+      }
+      catch (const std::out_of_range &e)
+      {
         RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME),
-                    "joint '%s' missing 'vr_TransmissionRatio' in ros2_control xacro",
-                    info_.joints[i].name.c_str());
+                     "joint '%s' missing 'vr_TransmissionRatio' in ros2_control xacro",
+                     info_.joints[i].name.c_str());
         return CallbackReturn::FAILURE;
       }
 
       // Fill joint state and command with defaults
-      joints_[i].state.position       = std::numeric_limits<double>::quiet_NaN();
-      joints_[i].state.velocity       = std::numeric_limits<double>::quiet_NaN();
-      joints_[i].state.acceleration   = std::numeric_limits<double>::quiet_NaN();
-      joints_[i].state.current        = std::numeric_limits<double>::quiet_NaN();
-      joints_[i].state.torque         = std::numeric_limits<double>::quiet_NaN();
-      joints_[i].command.position     = std::numeric_limits<double>::quiet_NaN();
-      joints_[i].command.velocity     = std::numeric_limits<double>::quiet_NaN();
+      joints_[i].state.position = std::numeric_limits<double>::quiet_NaN();
+      joints_[i].state.velocity = std::numeric_limits<double>::quiet_NaN();
+      joints_[i].state.acceleration = std::numeric_limits<double>::quiet_NaN();
+      joints_[i].state.current = std::numeric_limits<double>::quiet_NaN();
+      joints_[i].state.torque = std::numeric_limits<double>::quiet_NaN();
+      joints_[i].command.position = std::numeric_limits<double>::quiet_NaN();
+      joints_[i].command.velocity = std::numeric_limits<double>::quiet_NaN();
       joints_[i].command.acceleration = std::numeric_limits<double>::quiet_NaN();
-      joints_[i].command.current      = std::numeric_limits<double>::quiet_NaN();
-      joints_[i].command.torque       = std::numeric_limits<double>::quiet_NaN();
+      joints_[i].command.current = std::numeric_limits<double>::quiet_NaN();
+      joints_[i].command.torque = std::numeric_limits<double>::quiet_NaN();
     }
-    
+
     // Set default control mode
     control_mode = ControlMode::LISTEN;
 
@@ -246,18 +293,18 @@ namespace crcopen_hardware
   {
     RCLCPP_INFO(rclcpp::get_logger(LOG_NAME), "export_state_interfaces");
     std::vector<hardware_interface::StateInterface> state_interfaces;
-    for (size_t i = 0; i < joints_.size(); i++)
+    for (Joint &joint : joints_)
     {
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          joints_[i].name, hardware_interface::HW_IF_POSITION, &joints_[i].state.position));
+          joint.name, hardware_interface::HW_IF_POSITION, &joint.state.position));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          joints_[i].name, hardware_interface::HW_IF_VELOCITY, &joints_[i].state.velocity));
+          joint.name, hardware_interface::HW_IF_VELOCITY, &joint.state.velocity));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-        joints_[i].name, hardware_interface::HW_IF_ACCELERATION, &joints_[i].state.acceleration));
+          joint.name, hardware_interface::HW_IF_ACCELERATION, &joint.state.acceleration));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          joints_[i].name, "current", &joints_[i].state.current));
+          joint.name, hardware_interface::HW_IF_CURRENT, &joint.state.current));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          joints_[i].name, "effort", &joints_[i].state.torque));
+          joint.name, hardware_interface::HW_IF_EFFORT, &joint.state.torque));
     }
 
     return state_interfaces;
@@ -267,20 +314,20 @@ namespace crcopen_hardware
   {
     RCLCPP_INFO(rclcpp::get_logger(LOG_NAME), "export_command_interfaces");
     std::vector<hardware_interface::CommandInterface> command_interfaces;
-    for (size_t i = 0; i < joints_.size(); i++)
+    for (Joint &joint : joints_)
     {
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          joints_[i].name, hardware_interface::HW_IF_POSITION, &joints_[i].command.position));
+          joint.name, hardware_interface::HW_IF_POSITION, &joint.command.position));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          joints_[i].name, "position_direct", &joints_[i].command.position));
+          joint.name, "position_direct", &joint.command.position));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          joints_[i].name, hardware_interface::HW_IF_VELOCITY, &joints_[i].command.velocity));
+          joint.name, hardware_interface::HW_IF_VELOCITY, &joint.command.velocity));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        joints_[i].name, hardware_interface::HW_IF_ACCELERATION, &joints_[i].command.acceleration));
+          joint.name, hardware_interface::HW_IF_ACCELERATION, &joint.command.acceleration));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          joints_[i].name, "current", &joints_[i].command.current));
+          joint.name, hardware_interface::HW_IF_CURRENT, &joint.command.current));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          joints_[i].name, hardware_interface::HW_IF_EFFORT, &joints_[i].command.torque));
+          joint.name, hardware_interface::HW_IF_EFFORT, &joint.command.torque));
     }
 
     return command_interfaces;
@@ -311,11 +358,12 @@ namespace crcopen_hardware
     if (err_status == ORL_OK)
     {
       RCLCPP_INFO_STREAM(rclcpp::get_logger(LOG_NAME), "Payload parameters set."
-        << " m = "<<payload_mass
-        << " CoG = "<<payload_cog[0]<<","<<payload_cog[1]<<","<<payload_cog[2]
-        << " I = "<<payload_inertia[0]<<","<<payload_inertia[1]<<","<<payload_inertia[2]<<","<<payload_inertia[3]<<","<<payload_inertia[4]<<","<<payload_inertia[5]
-        );
-    } else {
+                                                           << " m = " << payload_mass
+                                                           << " CoG = " << payload_cog[0] << "," << payload_cog[1] << "," << payload_cog[2]
+                                                           << " I = " << payload_inertia[0] << "," << payload_inertia[1] << "," << payload_inertia[2] << "," << payload_inertia[3] << "," << payload_inertia[4] << "," << payload_inertia[5]);
+    }
+    else
+    {
       RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "Failed to set payload: %d", err_status);
       return hardware_interface::CallbackReturn::ERROR;
     }
@@ -326,12 +374,13 @@ namespace crcopen_hardware
     float ax_infl[ORL_AXIS_MAX];
     err_status = ORLD_SrvGetKinematicData(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, tx_rate, cal_data, ax_infl);
 
-    for (size_t i = 0; i < joints_.size(); i++)
+    for (Joint &joint : joints_)
     {
-      uint axis_idx = joints_[i].axis_idx;
-      joints_[i].tx_rate = tx_rate[axis_idx];
-      joints_[i].cal_data = cal_data[axis_idx];
-      if (ax_infl[i] != 0){
+      uint axis_idx = joint.axis_idx;
+      joint.tx_rate = tx_rate[axis_idx];
+      joint.cal_data = cal_data[axis_idx];
+      if (ax_infl[axis_idx] != 0)
+      {
         RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "Non-zero axis influence value detected in robot kinematics. Robots of this type are currently unsupported.");
         return hardware_interface::CallbackReturn::ERROR;
       }
@@ -349,29 +398,29 @@ namespace crcopen_hardware
 
     // Check which axes are open
     open_joints_.clear();
-    for (size_t i = 0; i < joints_.size(); i++)
+    for (Joint &joint : joints_)
     {
-      uint axis_idx = joints_[i].axis_idx;
+      uint axis_idx = joint.axis_idx;
       // Check joint claimed in xacro is open
       int AxisOpenness;
       ORLD_CheckOpenness(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, &AxisOpenness);
       if (AxisOpenness != ORL_AXISOPEN)
       {
-        RCLCPP_WARN(rclcpp::get_logger(LOG_NAME), "Joint index %d, '%s', is CLOSED.", axis_idx, joints_[i].name.c_str());
+        RCLCPP_WARN(rclcpp::get_logger(LOG_NAME), "Joint index %d, '%s', is CLOSED.", axis_idx, joint.name.c_str());
         // return hardware_interface::CallbackReturn::ERROR;
       }
       else
       {
-        RCLCPP_INFO(rclcpp::get_logger(LOG_NAME), "Joint index %d, '%s', is OPEN.", axis_idx, joints_[i].name.c_str());
+        RCLCPP_INFO(rclcpp::get_logger(LOG_NAME), "Joint index %d, '%s', is OPEN.", axis_idx, joint.name.c_str());
         open_axes_mask |= (1 << axis_idx);
-        open_joints_.push_back(&joints_[i]);
+        open_joints_.push_back(&joint);
       }
       // Check axis starts in LISTEN modality
       int AxisMode;
       ORLD_GetModeAx(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, axis_idx, &AxisMode);
       if (AxisMode != ORL_LISTEN)
       {
-        RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "Joint %d, '%s', was not in LISTEN modality upon connection.", axis_idx, joints_[i].name.c_str());
+        RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "Joint %d, '%s', was not in LISTEN modality upon connection.", axis_idx, joint.name.c_str());
         return hardware_interface::CallbackReturn::ERROR;
       };
     }
@@ -440,7 +489,7 @@ namespace crcopen_hardware
   hardware_interface::CallbackReturn CRCOpenHardware::on_deactivate(const rclcpp_lifecycle::State & /* previous_state */)
   {
     RCLCPP_INFO(rclcpp::get_logger(LOG_NAME), "on_deactivate");
-    
+
     // Set axes to LISTEN
     int AxisMode;
     ORLD_GetModeMasterAx(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, &AxisMode);
@@ -485,7 +534,8 @@ namespace crcopen_hardware
 
     RCLCPP_INFO(rclcpp::get_logger(LOG_NAME), "Waiting for thread to end.");
     keep_thread_running = false;
-    if (orld_thread_handle.joinable()){
+    if (orld_thread_handle.joinable())
+    {
       orld_thread_handle.join();
     }
     RCLCPP_INFO(rclcpp::get_logger(LOG_NAME), "Thread ended.");
@@ -504,13 +554,13 @@ namespace crcopen_hardware
   hardware_interface::return_type CRCOpenHardware::read(const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */)
   {
     // Copy and convert orld values into ros2control values.
-    for (Joint* joint: open_joints_)
+    for (Joint *joint : open_joints_)
     {
       uint axis_idx = joint->axis_idx;
-      joint->state.position = crc_to_rad_pos(orld_pos_meas[axis_idx], *joint); 
-      joint->state.velocity = crc_to_rad_vel(orld_vel_meas[axis_idx], *joint);
+      joint->state.position = pos_link_from_orld(orld_pos_meas[axis_idx], *joint);
+      joint->state.velocity = vel_link_from_orld(orld_vel_meas[axis_idx], *joint);
       joint->state.current = orld_cur_meas[axis_idx];
-      joint->state.torque = cur_to_trq(orld_cur_meas[axis_idx], *joint);
+      joint->state.torque = eff_from_orld_cur(orld_cur_meas[axis_idx], *joint);
 
       joint->state.acceleration = ruckig_output.new_acceleration[axis_idx]; // Not real measurement but approximately valid for ruckig interpolated trajectories
     }
@@ -518,38 +568,44 @@ namespace crcopen_hardware
   }
 
   hardware_interface::return_type CRCOpenHardware::write(const rclcpp::Time & /* time */, const rclcpp::Duration & /* period */)
-  { 
+  {
     // Update ruckig interpolation target as appropriate.
-    for (Joint* joint: open_joints_)
+    for (Joint *joint : open_joints_)
     {
       uint axis_idx = joint->axis_idx;
-      switch (control_mode) {
-        case ControlMode::POSITION:
-          ruckig_input.target_position[axis_idx] = joint->command.position;
-          break;
-        case ControlMode::VELOCITY:
-          ruckig_input.target_velocity[axis_idx] = joint->command.velocity;
-          break;
-        case ControlMode::ACCELERATION:
-          {
-            // Clamp target to ruckig maximums given in urdf
-            double acc_target = std::max(std::min(joint->command.acceleration, true_max_acceleration[axis_idx]), -true_max_acceleration[axis_idx]);
-            if (acc_target > 0 ){
-              ruckig_input.target_velocity[axis_idx] = ruckig_input.max_velocity[axis_idx];
-              ruckig_input.max_acceleration[axis_idx] = acc_target;
-              // ruckig_input.min_acceleration.value()[axis_idx] = -true_max_acceleration[axis_idx];
-            } else if (acc_target < 0) {
-              ruckig_input.target_velocity[axis_idx] = -ruckig_input.max_velocity[axis_idx];
-              // ruckig_input.min_acceleration.value()[axis_idx] = -acc_target;
-              // ruckig_input.max_acceleration[axis_idx] = true_max_acceleration[axis_idx];
-              ruckig_input.max_acceleration[axis_idx] = -acc_target;
-            } else {
-              ruckig_input.target_velocity[axis_idx] = ruckig_input.current_velocity[axis_idx];
-            }
-            break;
-          }
-        default:
-          break;
+      switch (control_mode)
+      {
+      case ControlMode::POSITION:
+        ruckig_input.target_position[axis_idx] = joint->command.position;
+        break;
+      case ControlMode::VELOCITY:
+        ruckig_input.target_velocity[axis_idx] = joint->command.velocity;
+        break;
+      case ControlMode::ACCELERATION:
+      {
+        // Clamp target to ruckig maximums given in urdf
+        double acc_target = std::max(std::min(joint->command.acceleration, true_max_acceleration[axis_idx]), -true_max_acceleration[axis_idx]);
+        if (acc_target > 0)
+        {
+          ruckig_input.target_velocity[axis_idx] = ruckig_input.max_velocity[axis_idx];
+          ruckig_input.max_acceleration[axis_idx] = acc_target;
+          // ruckig_input.min_acceleration.value()[axis_idx] = -true_max_acceleration[axis_idx];
+        }
+        else if (acc_target < 0)
+        {
+          ruckig_input.target_velocity[axis_idx] = -ruckig_input.max_velocity[axis_idx];
+          // ruckig_input.min_acceleration.value()[axis_idx] = -acc_target;
+          // ruckig_input.max_acceleration[axis_idx] = true_max_acceleration[axis_idx];
+          ruckig_input.max_acceleration[axis_idx] = -acc_target;
+        }
+        else
+        {
+          ruckig_input.target_velocity[axis_idx] = ruckig_input.current_velocity[axis_idx];
+        }
+        break;
+      }
+      default:
+        break;
       }
     }
 
@@ -564,41 +620,47 @@ namespace crcopen_hardware
 
     next_control_mode = control_mode;
     // If any relevant stop_interfaces, default to LISTEN
-    for (const auto &key : stop_interfaces){
-      for (size_t i = 0; i < joints_.size(); i++)
+    for (const auto &key : stop_interfaces)
+    {
+      for (Joint &joint : joints_)
       {
-        if (key.substr(0, key.find_last_of('/')) == joints_[i].name)
+        if (key.substr(0, key.find_last_of('/')) == joint.name)
         {
           // There is a stopping interface belonging to the hardware
           next_control_mode = ControlMode::LISTEN;
         }
       }
     }
-    
+
     uint start_position_direct_count = 0;
     std::vector<std::string> start_command_modes = {};
 
     // For each requested interface
     for (const auto &key : start_interfaces)
     {
-      std::string requested_joint_name = key.substr(0,key.find_last_of('/'));
-      std::string requested_joint_mode = key.substr(key.find_last_of('/')+1);
+      std::string requested_joint_name = key.substr(0, key.find_last_of('/'));
+      std::string requested_joint_mode = key.substr(key.find_last_of('/') + 1);
       bool requested_joint_is_open = false;
 
       // Find requested joint in list of open joints
-      for (Joint *joint : open_joints_) {
-        if (joint->name == requested_joint_name) {
+      for (Joint *joint : open_joints_)
+      {
+        if (joint->name == requested_joint_name)
+        {
           requested_joint_is_open = true;
-          if (requested_joint_mode == "position_direct") {
+          if (requested_joint_mode == "position_direct")
+          {
             start_position_direct_count += 1;
           }
-          else {
+          else
+          {
             start_command_modes.push_back(requested_joint_mode);
           }
         }
       }
-      if (!requested_joint_is_open) {
-        RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOG_NAME), "Rejecting command mode switch: Joint is not in list of open joints: "<<requested_joint_name);
+      if (!requested_joint_is_open)
+      {
+        RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOG_NAME), "Rejecting command mode switch: Joint is not in list of open joints: " << requested_joint_name);
         return hardware_interface::return_type::ERROR;
       }
     }
@@ -614,70 +676,86 @@ namespace crcopen_hardware
       }
       // Position and velocity can have unclaimed joints because they can be held constant. Current/Torque need active control.
       // Check all are claimed if Current/Torque
-      if ((start_command_modes.front() == "current" ||
-          start_command_modes.front() == hardware_interface::HW_IF_EFFORT)
-          && start_command_modes.size() != open_joints_.size()
-          ){
+      if ((start_command_modes.front() == hardware_interface::HW_IF_CURRENT ||
+           start_command_modes.front() == hardware_interface::HW_IF_EFFORT) &&
+          start_command_modes.size() != open_joints_.size())
+      {
         RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOG_NAME), "Rejecting command mode switch: all joints must be claimed if using current or effort mode");
         return hardware_interface::return_type::ERROR;
       }
-
     }
 
-    if (start_position_direct_count == 0){
+    if (start_position_direct_count == 0)
+    {
       // Not using position_direct -- use generic versions
-      if (start_command_modes.size() == 0){
+      if (start_command_modes.size() == 0)
+      {
         // No command claims, either continue previous mode or switch to listen as per stop_interface check
       }
-      else if (start_command_modes.front() == hardware_interface::HW_IF_POSITION){
+      else if (start_command_modes.front() == hardware_interface::HW_IF_POSITION)
+      {
         next_control_mode = ControlMode::POSITION;
       }
-      else if (start_command_modes.front() == hardware_interface::HW_IF_VELOCITY){
+      else if (start_command_modes.front() == hardware_interface::HW_IF_VELOCITY)
+      {
         next_control_mode = ControlMode::VELOCITY;
       }
-      else if (start_command_modes.front() == hardware_interface::HW_IF_ACCELERATION){
+      else if (start_command_modes.front() == hardware_interface::HW_IF_ACCELERATION)
+      {
         next_control_mode = ControlMode::ACCELERATION;
       }
-      else if (start_command_modes.front() == "current"){
+      else if (start_command_modes.front() == hardware_interface::HW_IF_CURRENT)
+      {
         next_control_mode = ControlMode::CURRENT;
       }
-      else if (start_command_modes.front() == hardware_interface::HW_IF_EFFORT){
+      else if (start_command_modes.front() == hardware_interface::HW_IF_EFFORT)
+      {
         next_control_mode = ControlMode::TORQUE;
       }
-      else {
+      else
+      {
         RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOG_NAME), "Rejecting command mode switch: unrecognised command type, " << start_command_modes.front());
         return hardware_interface::return_type::ERROR;
       }
-    } 
-    else if (start_position_direct_count == open_joints_.size()){
+    }
+    else if (start_position_direct_count == open_joints_.size())
+    {
       // Use position_direct versions
-      if (start_command_modes.size() == 0){
+      if (start_command_modes.size() == 0)
+      {
         next_control_mode = ControlMode::POSITION_DIRECT;
       }
-      else if (start_command_modes.front() == hardware_interface::HW_IF_POSITION){
+      else if (start_command_modes.front() == hardware_interface::HW_IF_POSITION)
+      {
         RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOG_NAME), "Rejecting command mode switch: claim of both position and position_direct not allowed");
         return hardware_interface::return_type::ERROR;
       }
-      else if (start_command_modes.front() == hardware_interface::HW_IF_VELOCITY){
+      else if (start_command_modes.front() == hardware_interface::HW_IF_VELOCITY)
+      {
         next_control_mode = ControlMode::VELOCITY_POSITION_DIRECT;
       }
-      else if (start_command_modes.front() == "current"){
+      else if (start_command_modes.front() == hardware_interface::HW_IF_CURRENT)
+      {
         next_control_mode = ControlMode::CURRENT_POSITION_DIRECT;
       }
-      else if (start_command_modes.front() == hardware_interface::HW_IF_EFFORT){
+      else if (start_command_modes.front() == hardware_interface::HW_IF_EFFORT)
+      {
         next_control_mode = ControlMode::TORQUE_POSITION_DIRECT;
       }
-      else {
+      else
+      {
         RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOG_NAME), "Rejecting command mode switch: unrecognised command type with position_direct claims, " << start_command_modes.front());
         return hardware_interface::return_type::ERROR;
       }
-    } 
-    else {
+    }
+    else
+    {
       RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOG_NAME), "Rejecting command mode switch: joints should either be all or none position_direct");
       return hardware_interface::return_type::ERROR;
     }
 
-    if (next_control_mode != ControlMode::LISTEN && get_lifecycle_state().label() != hardware_interface::lifecycle_state_names::ACTIVE){
+    if (next_control_mode != ControlMode::LISTEN && get_lifecycle_state().label() != hardware_interface::lifecycle_state_names::ACTIVE)
+    {
       RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "Rejecting command mode switch: Hardware interface not ACTIVE so command mode switch out of LISTEN is not allowed.");
       return hardware_interface::return_type::ERROR;
     }
@@ -691,7 +769,8 @@ namespace crcopen_hardware
   {
     RCLCPP_INFO(rclcpp::get_logger(LOG_NAME), "perform_command_mode_switch");
 
-    if (next_control_mode != ControlMode::LISTEN && get_lifecycle_state().label() != hardware_interface::lifecycle_state_names::ACTIVE){
+    if (next_control_mode != ControlMode::LISTEN && get_lifecycle_state().label() != hardware_interface::lifecycle_state_names::ACTIVE)
+    {
       RCLCPP_ERROR(rclcpp::get_logger(LOG_NAME), "Hardware interface not ACTIVE so command mode switch out of LISTEN is not allowed.");
       return hardware_interface::return_type::ERROR;
     }
@@ -710,7 +789,7 @@ namespace crcopen_hardware
     read(rclcpp::Time{}, rclcpp::Duration(0, 0));
 
     // Set commands to retain status-quo by default
-    for (Joint* joint: open_joints_)
+    for (Joint *joint : open_joints_)
     {
       uint axis_idx = joint->axis_idx;
       joint->command.position = joint->state.position;
@@ -731,30 +810,31 @@ namespace crcopen_hardware
     }
 
     // Set new modality
-    switch (next_control_mode){
-      case ControlMode::LISTEN:
-        // Already in LISTEN
-        break;
-      case ControlMode::POSITION:
-      case ControlMode::POSITION_DIRECT:
-        ruckig_input.control_interface = ruckig::ControlInterface::Position;
-        ruckig_input.target_position = ruckig_input.current_position;
-        err_status = ORLD_SrvSetModality(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, open_axes_mask, ORL_POS_ABSOLUTE, false /*en_addon_speed*/, false /*en_addon_curr*/);
-        break;
-      case ControlMode::VELOCITY:
-      case ControlMode::VELOCITY_POSITION_DIRECT:
-      case ControlMode::ACCELERATION:
-        ruckig_input.control_interface = ruckig::ControlInterface::Velocity;
-        ruckig_input.target_velocity = ruckig_input.current_velocity;
-        err_status = ORLD_SrvSetModality(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, open_axes_mask, ORL_SPD_FULL, false /*en_addon_speed*/, false /*en_addon_curr*/);
-        break;
-      
-      case ControlMode::CURRENT:
-      case ControlMode::CURRENT_POSITION_DIRECT:
-      case ControlMode::TORQUE:
-      case ControlMode::TORQUE_POSITION_DIRECT:
-        err_status = ORLD_SrvSetModality(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, open_axes_mask, ORL_CURR_FULL, false /*en_addon_speed*/, false /*en_addon_curr*/);
-        break;
+    switch (next_control_mode)
+    {
+    case ControlMode::LISTEN:
+      // Already in LISTEN
+      break;
+    case ControlMode::POSITION:
+    case ControlMode::POSITION_DIRECT:
+      ruckig_input.control_interface = ruckig::ControlInterface::Position;
+      ruckig_input.target_position = ruckig_input.current_position;
+      err_status = ORLD_SrvSetModality(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, open_axes_mask, ORL_POS_ABSOLUTE, false /*en_addon_speed*/, false /*en_addon_curr*/);
+      break;
+    case ControlMode::VELOCITY:
+    case ControlMode::VELOCITY_POSITION_DIRECT:
+    case ControlMode::ACCELERATION:
+      ruckig_input.control_interface = ruckig::ControlInterface::Velocity;
+      ruckig_input.target_velocity = ruckig_input.current_velocity;
+      err_status = ORLD_SrvSetModality(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, open_axes_mask, ORL_SPD_FULL, false /*en_addon_speed*/, false /*en_addon_curr*/);
+      break;
+
+    case ControlMode::CURRENT:
+    case ControlMode::CURRENT_POSITION_DIRECT:
+    case ControlMode::TORQUE:
+    case ControlMode::TORQUE_POSITION_DIRECT:
+      err_status = ORLD_SrvSetModality(ORL_VERB_OFF, ORL_CNTRL1, ORL_ARM1, open_axes_mask, ORL_CURR_FULL, false /*en_addon_speed*/, false /*en_addon_curr*/);
+      break;
     }
     if (err_status != ORL_OK)
     {
@@ -767,7 +847,7 @@ namespace crcopen_hardware
     next_control_mode = ControlMode::LISTEN;
 
     int modality;
-    ORLD_GetModeAx(ORL_VERB_OFF,ORL_CNTRL1,ORL_AXIS1,open_joints_[0]->axis_idx,&modality); //Get mode of first open axis
+    ORLD_GetModeAx(ORL_VERB_OFF, ORL_CNTRL1, ORL_AXIS1, open_joints_[0]->axis_idx, &modality); // Get mode of first open axis
     RCLCPP_INFO_STREAM(rclcpp::get_logger(LOG_NAME), "Control mode switched. CRC Control Mode: " << modality << ". control_mode enum: " << static_cast<int>(control_mode));
 
     return hardware_interface::return_type::OK;
@@ -804,52 +884,99 @@ namespace crcopen_hardware
     return hardware_interface::CallbackReturn::FAILURE; // could do SUCCESS to return to unconfigured
   };
 
-  // CRCOpen Conversion Functions : See "02 - Architecture of Comau Open Controller.pdf"
+  // CRCOpen Conversion Functions
 
-  float CRCOpenHardware::crc_to_rad_pos(float crc_msg_pos, Joint joint){
-    // Position chain computation from crc open message (motor rounds) to link (radians)
-    float motor = crc_msg_pos - joint.cal_data; // Calibration constants
-    float actuation = motor / joint.tx_rate; // Transmission rate
-    // Note: Coupling effect add_influence() is zero for NJ130_2.6
-    float link = actuation * (2*M_PI); // Position radians
+  double CRCOpenHardware::pos_link_from_orld(float crc_msg_pos, const Joint &joint)
+  {
+    double motor, actuation, link;
+
+    motor = static_cast<double>(crc_msg_pos) - joint.cal_data; // Calibrated motor position
+
+    if (joint.is_linear)
+    {
+      actuation = motor * joint.tx_rate; // Linear position in mm
+      link = actuation / 1000;           // Linear position in m
+    }
+    else
+    {
+      actuation = motor / joint.tx_rate; // Angular position in revolutions
+      link = actuation * (2 * M_PI);     // Angular position in radians
+    }
+
     return link;
   }
-  
-  float CRCOpenHardware::rad_to_crc_pos(float link_rad_pos, Joint joint){
-    // Position chain computation from link (radians) to crc open message (motor rounds)
-    float actuation = link_rad_pos / (2*M_PI);
-    // Note: Coupling effect remove_influence() is zero for NJ130_2.6
-    float motor = actuation * joint.tx_rate; // Transmission rate
-    float crc_msg = motor + joint.cal_data; // Calibration constants
-    return crc_msg;
-  }
-  
-  float CRCOpenHardware::crc_to_rad_vel(float crc_msg_vel, Joint joint){
-    // Speed chain computation from crc open message (motor rounds / 400us) to link (radians / sec)
-    float motor = crc_msg_vel / 0.0004; // convert to per sec
-    float actuation = motor / joint.tx_rate; // Transmission rate
-    // Note: Coupling effect add_influence() is zero for NJ130_2.6
-    float link = actuation * (2*M_PI); // Position radians / sec
-    return link;
-  }
-  
-  float CRCOpenHardware::rad_to_crc_vel(float link_rad_vel, Joint joint){
-    // Speed chain computation from link (radians / sec) to crc open message (motor rounds / 400us)
-    float actuation = link_rad_vel / (2*M_PI);
-    // Note: Coupling effect remove_influence() is zero for NJ130_2.6
-    float motor = actuation * joint.tx_rate; // Transmission rate
-    float crc_msg = motor * 0.0004; // convert to per 400us
-    return crc_msg;
+
+  float CRCOpenHardware::pos_orld_from_link(double link_pos, const Joint &joint)
+  {
+    double actuation, motor, crc_msg;
+
+    if (joint.is_linear)
+    {
+      actuation = link_pos * 1000;       // Linear position in mm
+      motor = actuation / joint.tx_rate; // Calibrated motor position
+    }
+    else
+    {
+      actuation = link_pos / (2 * M_PI); // Angular position in revolutions
+      motor = actuation * joint.tx_rate; // Calibrated motor position
+    }
+
+    crc_msg = motor + joint.cal_data; // Raw motor position
+
+    return static_cast<float>(crc_msg);
   }
 
-  float CRCOpenHardware::trq_to_cur(float torque_Nm, Joint joint) {
-  // I = τ_joint / (Kt * N), N = vr_TransmissionRatio [motor rev / joint rev]
-  return torque_Nm / (joint.vr_TorqConst * joint.vr_TransmissionRatio);
+  double CRCOpenHardware::vel_link_from_orld(float crc_msg_vel, const Joint &joint)
+  {
+    double motor, actuation, link;
+
+    // Note: The CRCOpen message is in "motor-rounds per time step", the time step is 400us
+    motor = crc_msg_vel / 0.0004; // Motor velocity in revolution/s
+
+    if (joint.is_linear)
+    {
+      actuation = motor * joint.tx_rate; // Linear velocity in mm/s
+      link = actuation / 1000;           // Linear velocity in m/s
+    }
+    else
+    {
+      actuation = motor / joint.tx_rate; // Angular velocity in revolution/s
+      link = actuation * (2 * M_PI);     // Angular velocity in rad/s
+    }
+
+    return static_cast<double>(link);
   }
- 
-  float CRCOpenHardware::cur_to_trq(float current_A, Joint joint) {
+
+  float CRCOpenHardware::vel_orld_from_link(double link_vel, const Joint &joint)
+  {
+    double actuation, motor, crc_msg;
+
+    if (joint.is_linear)
+    {
+      actuation = link_vel * 1000;       // Linear velocity in mm/s
+      motor = actuation / joint.tx_rate; // Motor velocity in revolution/s
+    }
+    else
+    {
+      actuation = link_vel / (2 * M_PI); // Velocity in rad/s
+      motor = actuation * joint.tx_rate; // Motor velocity in revolution/s
+    }
+
+    // Note: the CRCOpen message is in "motor-rounds per time step", the time step is 400us
+    crc_msg = motor * 0.0004; // Raw motor velocity in revolution/time-step
+    return static_cast<float>(crc_msg);
+  }
+
+  double CRCOpenHardware::eff_from_orld_cur(float current_A, const Joint &joint)
+  {
     // τ_joint = I * Kt * N
-    return current_A * joint.vr_TorqConst * joint.vr_TransmissionRatio;
+    return static_cast<double>(current_A * joint.vr_TorqConst * joint.vr_TransmissionRatio);
+  }
+
+  float CRCOpenHardware::orld_cur_from_eff(double effort_Nm_or_N, const Joint &joint)
+  {
+    // I = τ_joint / (Kt * N), N = vr_TransmissionRatio [motor rev / joint rev]
+    return static_cast<float>(effort_Nm_or_N / (joint.vr_TorqConst * joint.vr_TransmissionRatio));
   }
 
 } // namespace crcopen_hardware

@@ -57,10 +57,11 @@ We currently support the Comau NJ-130-2.6. To add support for another Comau CRCO
        * `ruckig_max_vel`, `ruckig_max_acc`, `ruckig_max_jrk` based on robot specs.
        * `cal_data` from teach pendant (Setup → Motion → Calib).
        * `tx_rate` from system variables (`$TX_RATE[i]`).
+       * Optional `is_linear`, which defaults to `false`; set it to `true` for a linear axis.
        * `vr_TorqConst` for torque-to-current conversion.
 
 5. **Configure controllers**
-   * Copy `controllers/controllers.yaml` and update controller names and joint lists if needed.
+   * Copy `config/controllers.yaml` and update controller names and joint lists if needed.
 
 6. **Test your package and Verify on hardware**
    * Ensure you have access to the physical robot for validation

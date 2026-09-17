@@ -1,0 +1,49 @@
+<!--
+This launch file launches the core ros2_control stack and spawns
+a topic-based controller for a Comau robot.
+
+Arguments:
+ robot
+ mode
+
+Usage:
+ ros2 launch comau_bringup comau_control.launch.xml mode:=position
+-->
+
+<launch>
+
+  <arg name="robot"
+    default="comau_nj_130_2_6"
+    description="Robot model number (note: use '_' instead of '.' or ' ')">
+  </arg>
+
+  <arg name="hardware"
+    default="crcopen"
+    description="Parameter passed to the xacro to select the hardware used in the ros2_control tag.">
+  </arg>
+
+  <arg name="mode" description="Topic command controller to spawn.">
+    <choice value="position" />
+    <choice value="velocity" />
+    <choice value="acceleration" />
+    <choice value="current" />
+    <choice value="effort" />
+    <choice value="joint_trajectory" />
+  </arg>
+
+  <!-- Resolve the description package location -->
+  <let name="robot_package_share"
+    value="$(find-pkg-share $(var robot)_description)" />
+
+  <!-- Start Comau ROS2 core bringup -->
+  <include file="$(find-pkg-share comau_bringup)/launch/comau_core.launch.xml">
+    <arg name="robot" value="$(var robot)" />
+    <arg name="hardware" value="$(var hardware)" />
+    <arg name="activate_hardware" value="true" />
+  </include>
+
+  <!-- Spawn selected controller -->
+  <node pkg="controller_manager" exec="spawner"
+    args="$(var mode)_controller --param-file $(var robot_package_share)/config/controllers.yaml" />
+
+</launch>

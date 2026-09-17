@@ -2,10 +2,10 @@
 
 [![DOI](https://zenodo.org/badge/1075309612.svg)](https://doi.org/10.5281/zenodo.17969100)
 
-| ROS 2 Distro | **Humble** | **Jazzy** | **Rolling** |
-|---|---|---|---|
-| **Branch** | `humble` | `jazzy` | `main` |
-| **Release status** | [![CI (humble)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=humble&event=push)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml) | [![CI (jazzy)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=jazzy&event=push)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml) | [![CI (main)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml) |
+| ROS 2 Distro | **Humble** | **Jazzy** | **Lyrical** | **Rolling** |
+|---|---|---|---|---|
+| **Branch** | `humble` | `jazzy` | `lyrical` | `main` |
+| **Release status** | [![CI (humble)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=humble&event=push)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml) | [![CI (jazzy)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=jazzy&event=push)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml) | Coming soon | [![CI (main)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/ukaea/CRCOpenROS2Driver/actions/workflows/ci.yml) |
 
 
 CRCOpen is an option available on Comau robot controller (CRC) cabinets to enable control of a robotic
@@ -31,7 +31,7 @@ A ROS 2 package with useful launch files as explained in the usage section of th
 
 ## Installation
 
-Install ROS 2 Rolling following the [offical instructions for Ubuntu](https://docs.ros.org/en/rolling/Installation/Ubuntu-Install-Debs.html).
+The `main` branch targets ROS 2 Rolling on Ubuntu 26.04. Install ROS 2 Rolling following the [offical instructions for Ubuntu](https://docs.ros.org/en/rolling/Installation/Ubuntu-Install-Debs.html).
 
 Clone via Git or download the ZIP archive, depending on your preference:
 ```bash
@@ -106,10 +106,12 @@ This driver conforms as much as possible to the standards of [ros2_control](http
 
 The `comau_bringup` package provides some launch files for convenience to be used as follows:
 
+The launch files accept a `robot` argument, which defaults to `comau_nj_130_2_6`, and a `hardware` argument, which defaults to `crcopen` and can be set to `mock` for mock hardware. The core launch also accepts `activate_hardware`, which defaults to `false`; set it to `true` when hardware activation is required. The topic-control and custom-controller launch files activate the selected hardware automatically.
+
 ### Minimal usage
 
 ```
-ros2 launch comau_bringup comau_core.launch.py
+ros2 launch comau_bringup comau_core.launch.xml
 ```
 
 This starts the core functionality of the driver, including a controller manager node and joint states publisher. For example, this can be used when wanting to publish the robot state in ROS 2 while moving the robot using the teach pendant.
@@ -117,10 +119,10 @@ This starts the core functionality of the driver, including a controller manager
 ### Topic based control
 
 ```
-ros2 launch comau_bringup comau_control.launch.py mode:=*
+ros2 launch comau_bringup comau_control.launch.xml mode:=*
 ```
 
-This starts the core functionality in addition to a topic-based controller of the specified mode (`position`, `velocity`, `acceleration`, `current`, `effort`). The robot can then be controlled by sending `Float64MultiArray` messages to the `/*_controller/commands` topic.
+This starts the core functionality in addition to a topic-based controller of the specified mode (`position`, `velocity`, `acceleration`, `current`, `effort`) or the controller `joint_trajectory` which can take actions or topics. The robot can then be controlled by sending `Float64MultiArray` messages to the `/*_controller/commands` topic.
 
 ### Other ros2_control controllers
 
@@ -129,10 +131,10 @@ If you want a controller beyond the built-in **topic-based** ones, you can imple
 You can also reuse one of the generic controllers provided by [ros2_controllers](https://github.com/ros-controls/ros2_controllers). Some of these use topics in different ways (for example, a PID controller can take a reference input from a topic), while others are action- or service-driven (e.g. trajectory controllers).
 
 ```
-ros2 launch comau_bringup comau_custom_controller.launch.py controller:=* param_file:=**
+ros2 launch comau_bringup comau_custom_controller.launch.xml controller:=* param_file:=**
 ```
 
-This starts the core functionality in addition to a custom ros2_control controller. The path to a controller parameter YAML file must be provided.
+This starts the core functionality in addition to a custom ros2_control controller. The path to a controller parameter YAML file must be provided. Use `robot:=*` and `hardware:=mock` when selecting a different robot description or mock hardware.
 
 ## Driver Details
 
@@ -181,12 +183,14 @@ A suitable URDF will need to be created which can be based on [published CAD fil
 In addition, the parameters for each joint in a `*.ros2_control.xacro` will need to be populated.
  - `ruckig_max_vel` can be set based on the robot's technical specifications.
 
+The interface can address up to ten open axes. Additional revolute axes can be described with the normal joint configuration. For a prismatic/linear joint, set `<param name="is_linear">true</param>` inside its `ros2_control` joint entry. Linear position and velocity use ROS SI units: metres and metres per second, so the corresponding linear Ruckig limits must also be supplied in those units. Linear force/effort conversion is not supplied because it requires actuator-specific mechanical data.
+
 ## Disclaimers
 
 This ROS 2 driver was developed by UKAEA RACE Cybernetics engineers for internal research. While it has been tested extensively on our Comau NJ-130-2.6, it is provided as-is for research and development use only. **It is not intended for production or safety-critical applications** and may contain unforeseen bugs or limitations.
 
 **Community-maintained**
-- At the time of writing, we are actively building and testing against ROS 2 Rolling and Jazzy on Ubuntu 24.04; future support for newer ROS 2 or Ubuntu releases will depend on available resources.
+- At the time of writing, we are actively building and testing against ROS 2 Jazzy on Ubuntu 24.04; future support for newer ROS 2 or Ubuntu releases will depend on available resources.
 - Contributions of new robot descriptions or enhancements are welcome — see CONTRIBUTING.md for details.
 - At the time of writing, this driver has been verified with ORL driver 4.41.5.31647. Older versions such as 4.41.4.31545 may partially work but are known to have issues. Compatibility with other ORL driver releases is therefore not guaranteed; however, we expect this driver to work with ORL 4.41.5 and above.
 

@@ -21,7 +21,7 @@
 
   <link name="base_link">
     <xacro:add_visual_and_collision link_name="link_0" xyz="0 0 0" rpy="0 0 0"/>
-    <!-- inertia: none because base is a fixed link -->
+    <!-- inertia, none because base is a fixed link -->
   </link>
   
   <link name="link_1_and_motors">
@@ -123,7 +123,7 @@
     <child link="link_2"/>
     <origin xyz="0.35 0 -0.499" rpy="${-pi/2} 0 ${pi}"/>
     <axis xyz="0 0 1"/> 
-    <limit lower="${radians(-75)}" upper="${radians(60)}" velocity="${radians(110)}" effort="100000.0" /> 
+    <limit lower="${radians(-75)}" upper="${radians(95)}" velocity="${radians(110)}" effort="100000.0" /> 
   </joint>
   
   <joint name="elbow_active" type="revolute">

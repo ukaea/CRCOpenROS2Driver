@@ -1,0 +1,49 @@
+<!--
+This launch file includes the core bring-up (comau_core.launch.xml)
+and spawns a custom ros2_control controller, passing a user-provided
+parameter file.
+
+Arguments:
+ robot
+ controller
+ param_file
+
+Usage:
+ ros2 launch comau_bringup comau_custom_controller.launch.xml \
+   controller:=my_controller param_file:=/path/to/params.yaml
+-->
+
+<launch>
+
+  <arg name="robot"
+    default="comau_nj_130_2_6"
+    description="Robot model number (note: use '_' instead of '.' or ' ')">
+  </arg>
+
+  <arg name="hardware"
+    default="crcopen"
+    description="Parameter passed to the xacro to select the hardware used in the ros2_control tag.">
+  </arg>
+
+  <arg name="controller"
+    description="Name of controller to spawn. This must be a prefix to a '_controller' package."/>
+
+  <arg name="param_file"
+    description="Path to parameter file specific to this controller."/>
+
+  <!-- Resolve the description package location -->
+  <let name="robot_package_share"
+    value="$(find-pkg-share $(var robot)_description)"/>
+
+  <!-- Start Comau ROS2 core bringup -->
+  <include file="$(find-pkg-share comau_bringup)/launch/comau_core.launch.xml">
+    <arg name="robot" value="$(var robot)"/>
+    <arg name="hardware" value="$(var hardware)" />
+    <arg name="activate_hardware" value="true" />
+  </include>
+
+  <!-- Spawn custom controller -->
+  <node pkg="controller_manager" exec="spawner"
+    args="$(var controller)_controller --param-file $(var param_file)"/>
+
+</launch>

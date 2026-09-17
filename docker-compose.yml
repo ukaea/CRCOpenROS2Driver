@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      pull: true
       args:
         ROS_DISTRO: ${ROS_DISTRO:-rolling}
     container_name: comau_dev

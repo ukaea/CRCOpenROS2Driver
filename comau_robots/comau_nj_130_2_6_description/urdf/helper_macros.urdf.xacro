@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="standard_interfaces" params="initial_position:=0">
+    <command_interface name="position" />
+    <command_interface name="velocity" />
+    <command_interface name="acceleration" />
+    <command_interface name="effort" />
+
+    <state_interface name="position">
+      <param name="initial_value">${initial_position}</param>
+    </state_interface>
+    <state_interface name="velocity" />
+    <state_interface name="acceleration" />
+    <state_interface name="effort" />
+  </xacro:macro>
+
+  <xacro:macro name="crcopen_interfaces">
+    <command_interface name="position_direct" />
+    <command_interface name="current" />
+    <state_interface name="current" />
+  </xacro:macro>
+  
+</robot>

@@ -1,0 +1,56 @@
+<!--
+This launch file starts the nodes that are always needed to control a Comau robot with ros2_control
+Arguments:
+  robot
+Usage:
+  ros2 launch comau_bringup comau_core.launch.xml
+  ros2 launch comau_bringup comau_core.launch.xml robot:=my_robot hardware:=mock
+activate_hardware:=true
+-->
+
+<launch>
+
+  <arg name="activate_hardware"
+    default="false"
+    description="If true, activate hardware component and request drives on (requires teach pendant in Auto). Defaults to false to suit teach pendant manual mode.">
+  </arg>
+
+  <arg name="robot"
+    default="comau_nj_130_2_6"
+    description="Robot model number (note: use '_' instead of '.' or ' ')">
+  </arg>
+
+  <arg name="hardware"
+    default="crcopen"
+    description="Parameter passed to the xacro to select the hardware used in the ros2_control tag.">
+  </arg>
+
+  <!-- Resolve the description package location -->
+  <let name="robot_package_share"
+    value="$(find-pkg-share $(var robot)_description)" />
+
+  <!-- Main ros2_control node -->
+  <node pkg="controller_manager" exec="ros2_control_node" output="both"
+    if="$(var activate_hardware)">
+    <param name="update_rate" value="2500" />
+    <param name="enforce_command_limits" value="false" />
+  </node>
+
+  <node pkg="controller_manager" exec="ros2_control_node" output="both"
+    unless="$(var activate_hardware)">
+    <param name="update_rate" value="2500" />
+    <param name="enforce_command_limits" value="false" />
+    <param name="hardware_components_initial_state.inactive" value="$(var robot)" value-sep=", " />
+  </node>
+
+  <!-- Publishes TF -->
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" output="both">
+    <param name="robot_description"
+      value="$(command 'xacro $(var robot_package_share)/urdf/$(var robot).urdf.xacro hardware:=$(var hardware)')" />
+  </node>
+
+  <!-- Publishes /joint_states -->
+  <node pkg="controller_manager" exec="spawner"
+    args="joint_state_broadcaster --param-file $(var robot_package_share)/config/controllers.yaml" />
+
+</launch>

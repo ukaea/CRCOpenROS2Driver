@@ -1,37 +1,8 @@
-controller_manager:
-  ros__parameters:
-    update_rate: 2500  # Hz
-    enforce_command_limits: false # command limits are enforced by the driver itself
-    # hardware_components_initial_state:
-    #   inactive:
-    #     - comau_nj_130_2_6
-
-    joint_state_broadcaster:
-      type: joint_state_broadcaster/JointStateBroadcaster
-
-    position_controller:
-      type: position_controllers/JointGroupPositionController
-
-    velocity_controller:
-      type: velocity_controllers/JointGroupVelocityController
-
-    acceleration_controller:
-      type: forward_command_controller/ForwardCommandController
-
-    current_controller:
-      type: forward_command_controller/ForwardCommandController
-
-    effort_controller:
-      type: forward_command_controller/ForwardCommandController
-
-    joint_trajectory_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
-
-
 joint_state_broadcaster:
   # If 'joints' and/or 'interfaces' is left blank, all will be published in compiled URDF order.
   # Listing them explictly defines the order in the published message.
   ros__parameters:
+    type: joint_state_broadcaster/JointStateBroadcaster
     joints:
       - waist
       - shoulder
@@ -42,11 +13,13 @@ joint_state_broadcaster:
     interfaces:
       - position
       - velocity
-      - current
+      # - current
       - effort
 
 position_controller:
   ros__parameters:
+    type: forward_command_controller/ForwardCommandController
+    interface_name: position
     joints:
       - waist
       - shoulder
@@ -57,16 +30,20 @@ position_controller:
 
 velocity_controller:
   ros__parameters:
+    type: forward_command_controller/ForwardCommandController
+    interface_name: velocity
     joints:
-      # - waist
-      # - shoulder
-      # - elbow_active
+      - waist
+      - shoulder
+      - elbow_active
       - forearm_roll
       - wrist_angle
-      # - wrist_rotate
+      - wrist_rotate
 
 acceleration_controller:
   ros__parameters:
+    type: forward_command_controller/ForwardCommandController
+    interface_name: acceleration
     joints:
       - waist
       - shoulder
@@ -74,21 +51,11 @@ acceleration_controller:
       - forearm_roll
       - wrist_angle
       - wrist_rotate
-    interface_name: acceleration
 
 current_controller:
   ros__parameters:
-    joints:
-      - waist
-      - shoulder
-      - elbow_active
-      - forearm_roll
-      - wrist_angle
-      - wrist_rotate
+    type: forward_command_controller/ForwardCommandController
     interface_name: current
-
-effort_controller:      
-  ros__parameters:
     joints:
       - waist
       - shoulder
@@ -96,10 +63,22 @@ effort_controller:
       - forearm_roll
       - wrist_angle
       - wrist_rotate
-    interface_name: effort 
+
+effort_controller:
+  ros__parameters:
+    type: forward_command_controller/ForwardCommandController
+    interface_name: effort
+    joints:
+      - waist
+      - shoulder
+      - elbow_active
+      - forearm_roll
+      - wrist_angle
+      - wrist_rotate
 
 joint_trajectory_controller:
   ros__parameters:
+    type: joint_trajectory_controller/JointTrajectoryController
     joints:
       - waist
       - shoulder
@@ -107,3 +86,9 @@ joint_trajectory_controller:
       - forearm_roll
       - wrist_angle
       - wrist_rotate
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+

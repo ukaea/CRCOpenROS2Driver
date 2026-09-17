@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20)
 project(comau_nj_130_2_6_description)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
 
 install(DIRECTORY
-controllers
+config
 meshes
 urdf
   DESTINATION share/${PROJECT_NAME}

@@ -18,8 +18,8 @@
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
-#include "hardware_interface/types/hardware_component_interface_params.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
+#include "hardware_interface/types/hardware_component_interface_params.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
@@ -27,294 +27,303 @@
 namespace crcopen_hardware
 {
 
-enum class ControlMode {
-  LISTEN,
-  POSITION,
-  POSITION_DIRECT,
-  VELOCITY,
-  VELOCITY_POSITION_DIRECT,
-  ACCELERATION,
-  CURRENT,
-  CURRENT_POSITION_DIRECT,
-  TORQUE,
-  TORQUE_POSITION_DIRECT,
-};
+  constexpr std::size_t CRCOPEN_MAX_NUM_OPEN_AXES = 10;
 
-struct JointValue
-{
-  double position{0.0};
-  double velocity{0.0};
-  double acceleration{0.0};
-  double current{0.0};
-  double torque{0.0};
-};
+  enum class ControlMode
+  {
+    LISTEN,
+    POSITION,
+    POSITION_DIRECT,
+    VELOCITY,
+    VELOCITY_POSITION_DIRECT,
+    ACCELERATION,
+    CURRENT,
+    CURRENT_POSITION_DIRECT,
+    TORQUE,
+    TORQUE_POSITION_DIRECT,
+  };
 
-struct Joint
-{
-  std::string name;
-  unsigned int axis_idx;
+  struct JointValue
+  {
+    double position{0.0};
+    double velocity{0.0};
+    double acceleration{0.0};
+    double current{0.0};
+    double torque{0.0};
+  };
 
-  JointValue state{};
-  JointValue command{};
+  struct Joint
+  {
+    std::string name;
+    unsigned int axis_idx;
 
-  double cal_data;
-  double tx_rate;
-  double vr_TorqConst;
-  double vr_TransmissionRatio;
-};
+    bool is_linear;
 
-/**
- * @brief Hardware interface for Comau CRC Open (C5G) using the ORL driver.
- *
- * Implements ros2_control SystemInterface, performs unit conversion and optional
- * Ruckig interpolation, and exchanges data with the CRCOpen controller via ORL.
- * 
- * @note The methods prefixed with on_*, along with export_*, read, write,
- *       and the command-mode switch functions, are the standard ros2_control
- *       lifecycle hooks (not custom entry points). See:
- *       https://control.ros.org/rolling/doc/resources/resources.html
- */
-class CRCOpenHardware
-: public hardware_interface::SystemInterface
-{
-public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(CRCOpenHardware)
+    JointValue state{};
+    JointValue command{};
 
-   /**
-   * @brief Initialize hardware from URDF/ros2_control description.
-   *
-   * Reads hardware parameters from info, sets up internal buffers and Ruckig.
-   * No network communication is started.
-   *
-   * @param[in] info Hardware description from the ResourceManager.
-   * @return SUCCESS if initialized; FAILURE if parameters are missing/invalid; ERROR otherwise.
-   * @post UNCONFIGURED state on success.
-   */
-  hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareComponentInterfaceParams & params) override;
+    double cal_data;
+    double tx_rate;
+    double vr_TorqConst;
+    double vr_TransmissionRatio;
+  };
 
   /**
-   * @brief Export per-joint state interfaces.
+   * @brief Hardware interface for Comau CRC Open (C5G) using the ORL driver.
    *
-   * Exposes state interfaces for position, velocity, acceleration, current, and effort.
+   * Implements ros2_control SystemInterface, performs unit conversion and optional
+   * Ruckig interpolation, and exchanges data with the CRCOpen controller via ORL.
    *
-   * @return Vector of StateInterface objects.
+   * @note The methods prefixed with on_*, along with export_*, read, write,
+   *       and the command-mode switch functions, are the standard ros2_control
+   *       lifecycle hooks (not custom entry points). See:
+   *       https://control.ros.org/rolling/doc/resources/resources.html
    */
-  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+  class CRCOpenHardware
+      : public hardware_interface::SystemInterface
+  {
+  public:
+    RCLCPP_SHARED_PTR_DEFINITIONS(CRCOpenHardware)
 
     /**
-   * @brief Export per-joint command interfaces.
-   *
-   * Exposes command interfaces: position, position_direct, velocity, acceleration, current, effort.
-   *
-   * @return Vector of CommandInterface objects.
-   */
-  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+     * @brief Initialize hardware from URDF/ros2_control description.
+     *
+     * Reads hardware parameters from info, sets up internal buffers and Ruckig.
+     * No network communication is started.
+     *
+     * @param[in] info Hardware description from the ResourceManager.
+     * @return SUCCESS if initialized; FAILURE if parameters are missing/invalid; ERROR otherwise.
+     * @post UNCONFIGURED state on success.
+     */
+    hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareComponentInterfaceParams &params) override;
 
-  /**
-   * @brief Establish ORL communication and discover open axes.
-   *
-   * Opens the CRC connection, starts the IO thread, sets payload, and builds the list of open joints.
-   *
-   * @param[in] previous_state Lifecycle state prior to configuration.
-   * @return SUCCESS on configuration; FAILURE for recoverable issues; ERROR otherwise.
-   * @post INACTIVE state on success.
-   */
-  hardware_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
+    /**
+     * @brief Export per-joint state interfaces.
+     *
+     * Exposes state interfaces for position, velocity, acceleration, current, and effort.
+     *
+     * @return Vector of StateInterface objects.
+     */
+    std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-  /**
-   * @brief Enable motion (DRIVES ON).
-   *
-   * Requires AUTO TP mode, requests DRIVES ON, and waits for confirmation.
-   *
-   * @param[in] previous_state Lifecycle state prior to activation.
-   * @return SUCCESS when active; FAILURE if preconditions not met; ERROR on communication errors.
-   * @post ACTIVE state on success.
-   */
-  hardware_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
+    /**
+     * @brief Export per-joint command interfaces.
+     *
+     * Exposes command interfaces: position, position_direct, velocity, acceleration, current, effort.
+     *
+     * @return Vector of CommandInterface objects.
+     */
+    std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-  /**
-   * @brief Stop motion (LISTEN + DRIVES OFF).
-   *
-   * Switches to LISTEN and turns drives off.
-   *
-   * @param[in] previous_state Lifecycle state prior to deactivation.
-   * @return SUCCESS on deactivation; ERROR otherwise.
-   * @post INACTIVE state on success.
-   */
-  hardware_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+    /**
+     * @brief Establish ORL communication and discover open axes.
+     *
+     * Opens the CRC connection, starts the IO thread, sets payload, and builds the list of open joints.
+     *
+     * @param[in] previous_state Lifecycle state prior to configuration.
+     * @return SUCCESS on configuration; FAILURE for recoverable issues; ERROR otherwise.
+     * @post INACTIVE state on success.
+     */
+    hardware_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State &previous_state) override;
 
-  /**
-   * @brief Close ORL communication and stop IO thread.
-   *
-   * @param[in] previous_state Lifecycle state prior to cleanup.
-   * @return SUCCESS on cleanup; ERROR otherwise.
-   * @post UNCONFIGURED state on success.
-   */
-  hardware_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
+    /**
+     * @brief Enable motion (DRIVES ON).
+     *
+     * Requires AUTO TP mode, requests DRIVES ON, and waits for confirmation.
+     *
+     * @param[in] previous_state Lifecycle state prior to activation.
+     * @return SUCCESS when active; FAILURE if preconditions not met; ERROR on communication errors.
+     * @post ACTIVE state on success.
+     */
+    hardware_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State &previous_state) override;
 
-  /**
-   * @brief Graceful shutdown from any state.
-   *
-   * Calls deactivate and cleanup.
-   *
-   * @param[in] previous_state Lifecycle state prior to shutdown.
-   * @return SUCCESS on shutdown; ERROR otherwise.
-   * @post FINALIZED state on success.
-   */
-  hardware_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
+    /**
+     * @brief Stop motion (LISTEN + DRIVES OFF).
+     *
+     * Switches to LISTEN and turns drives off.
+     *
+     * @param[in] previous_state Lifecycle state prior to deactivation.
+     * @return SUCCESS on deactivation; ERROR otherwise.
+     * @post INACTIVE state on success.
+     */
+    hardware_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State &previous_state) override;
 
-  /**
-   * @brief Read latest measurements into state interfaces.
-   *
-   * Copies buffered IO data, converts units, and updates state interfaces.
-   *
-   * @param[in] time   Current time (unused).
-   * @param[in] period Time since last read (unused).
-   * @return OK on success; ERROR on failure.
-   */
-  hardware_interface::return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
-  
-  /**
-   * @brief Write current commands towards the hardware.
-   *
-   * Updates Ruckig targets or caches direct commands; the IO thread performs the ORL writes.
-   *
-   * @param[in] time   Current time (unused).
-   * @param[in] period Time since last write (unused).
-   * @return OK on success; ERROR on failure.
-   */
-  hardware_interface::return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+    /**
+     * @brief Close ORL communication and stop IO thread.
+     *
+     * @param[in] previous_state Lifecycle state prior to cleanup.
+     * @return SUCCESS on cleanup; ERROR otherwise.
+     * @post UNCONFIGURED state on success.
+     */
+    hardware_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State &previous_state) override;
 
-  /**
-   * @brief Check and prepare a command-mode switch request.
-   *
-   * Validates requested interfaces and computes the next control mode.
-   *
-   * @param[in] start_interfaces Fully-qualified interfaces to start (e.g., "joint/velocity").
-   * @param[in] stop_interfaces  Fully-qualified interfaces to stop (unused).
-   * @return OK if acceptable; ERROR if invalid.
-   */
-  hardware_interface::return_type prepare_command_mode_switch(
-                                      const std::vector<std::string> & start_interfaces,
-                                      const std::vector<std::string> & /*stop_interfaces*/) override;
+    /**
+     * @brief Graceful shutdown from any state.
+     *
+     * Calls deactivate and cleanup.
+     *
+     * @param[in] previous_state Lifecycle state prior to shutdown.
+     * @return SUCCESS on shutdown; ERROR otherwise.
+     * @post FINALIZED state on success.
+     */
+    hardware_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State &previous_state) override;
 
-  /**
-   * @brief Apply a previously prepared command-mode switch.
-   *
-   * Sets CRC modality via ORL, resets Ruckig state, and updates control_mode.
-   *
-   * @param[in] start_interfaces Interfaces to start (unused).
-   * @param[in] stop_interfaces  Interfaces to stop (unused).
-   * @return OK on success; ERROR otherwise.
-   */
-  hardware_interface::return_type perform_command_mode_switch(
-                                      const std::vector<std::string> & start_interfaces,
-                                      const std::vector<std::string> & /*stop_interfaces*/) override;
+    /**
+     * @brief Read latest measurements into state interfaces.
+     *
+     * Copies buffered IO data, converts units, and updates state interfaces.
+     *
+     * @param[in] time   Current time (unused).
+     * @param[in] period Time since last read (unused).
+     * @return OK on success; ERROR on failure.
+     */
+    hardware_interface::return_type read(const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
-  /**
-   * @brief Handle errors raised from any lifecycle state.
-   *
-   * Attempts to switch to LISTEN, turn drives off, and close ORL.
-   *
-   * @param[in] previous_state Lifecycle state prior to the error.
-   * @return FAILURE (component transitions to FINALIZED).
-   */
-  hardware_interface::CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
+    /**
+     * @brief Write current commands towards the hardware.
+     *
+     * Updates Ruckig targets or caches direct commands; the IO thread performs the ORL writes.
+     *
+     * @param[in] time   Current time (unused).
+     * @param[in] period Time since last write (unused).
+     * @return OK on success; ERROR on failure.
+     */
+    hardware_interface::return_type write(const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
-protected:
-  /**
-   * Threaded function that maintains CRC communication.
-   * 
-   * This is a critical real-time function that uses the ORL Driver functions to
-   * read and write to the robot motors. The Ruckig interpolator is called every
-   * loop to smooth the trajectory where needed.
-   */
-  void orld_thread_function();
+    /**
+     * @brief Check and prepare a command-mode switch request.
+     *
+     * Validates requested interfaces and computes the next control mode.
+     *
+     * @param[in] start_interfaces Fully-qualified interfaces to start (e.g., "joint/velocity").
+     * @param[in] stop_interfaces  Fully-qualified interfaces to stop (unused).
+     * @return OK if acceptable; ERROR if invalid.
+     */
+    hardware_interface::return_type prepare_command_mode_switch(
+        const std::vector<std::string> &start_interfaces,
+        const std::vector<std::string> & /*stop_interfaces*/) override;
 
-  std::thread orld_thread_handle;
-  bool keep_thread_running;
+    /**
+     * @brief Apply a previously prepared command-mode switch.
+     *
+     * Sets CRC modality via ORL, resets Ruckig state, and updates control_mode.
+     *
+     * @param[in] start_interfaces Interfaces to start (unused).
+     * @param[in] stop_interfaces  Interfaces to stop (unused).
+     * @return OK on success; ERROR otherwise.
+     */
+    hardware_interface::return_type perform_command_mode_switch(
+        const std::vector<std::string> &start_interfaces,
+        const std::vector<std::string> & /*stop_interfaces*/) override;
 
-  // CRCOpen Conversion Calculations
-  /**
-   * Convert joint position from CRC Message to Radians
-   * @param crc_msg_pos Position (motor rounds)
-   * @param joint Joint struct with calibration constants
-   * @return Position (radians)
-   */
-  float crc_to_rad_pos(float crc_msg_pos, Joint joint);
-  /**
-   * Convert joint position from Radians to CRC Message
-   * @param link_rad_pos Position (radians)
-   * @param joint Joint struct with calibration constants
-   * @return Position (motor rounds)
-   */
-  float rad_to_crc_pos(float link_rad_pos, Joint joint);
-  /**
-   * Convert joint velocity from CRC Message to Radians per Second
-   * @param crc_msg_vel Velocity (motor rounds / time step)
-   * @param joint Joint struct with calibration constants
-   * @return Velocity (radians / second)
-   */
-  float crc_to_rad_vel(float crc_msg_vel, Joint joint);
-  /**
-   * Convert joint velocity from Radians per Second to CRC Message
-   * @param crc_msg_vel Velocity (radians / second)
-   * @param joint Joint struct with calibration constants
-   * @return Velocity (motor rounds / time step)
-   */
-  float rad_to_crc_vel(float link_rad_vel, Joint joint);
-  /**
-   * Calculate joint torque from motor current
-   * @param torque_Nm Torque (Newton-Meters)
-   * @param joint Joint struct with calibration constants
-   * @return Current (amperes)
-   */
-  float trq_to_cur(float torque_Nm, Joint joint);
-  /**
-   * Calculate motor current from joint torque
-   * @param current_A Current (amperes)
-   * @param joint Joint struct with calibration constants
-   * @return Torque (Newton-Meters)
-   */
-  float cur_to_trq(float current_A, Joint joint);
+    /**
+     * @brief Handle errors raised from any lifecycle state.
+     *
+     * Attempts to switch to LISTEN, turn drives off, and close ORL.
+     *
+     * @param[in] previous_state Lifecycle state prior to the error.
+     * @return FAILURE (component transitions to FINALIZED).
+     */
+    hardware_interface::CallbackReturn on_error(const rclcpp_lifecycle::State &previous_state) override;
 
-  // read/write values for ros2control command/state
-  std::vector<Joint> joints_; //In whatever order ros2control gives
-  std::vector<Joint*> open_joints_; //Pointers to elements in joints_ corresponding to the joints in open mode
-  double callback_period_;
+  protected:
+    /**
+     * Threaded function that maintains CRC communication.
+     *
+     * This is a critical real-time function that uses the ORL Driver functions to
+     * read and write to the robot motors. The Ruckig interpolator is called every
+     * loop to smooth the trajectory where needed.
+     */
+    void orld_thread_function();
 
-  ControlMode control_mode; // All axes have to be same, so control mode is shared
-  ControlMode next_control_mode; // For command mode switching
+    std::thread orld_thread_handle;
+    bool keep_thread_running;
 
-  // Network addresses needed for controller intialisations
-  const char* LPC_addr;
-  const char* CRC_addr;
+    // CRCOpen Conversion Calculations
+    /**
+     * Convert joint position from CRC Message to Radians or Metres
+     * @param crc_msg_pos Position (motor rounds)
+     * @param joint Joint struct with calibration constants
+     * @return Position (rad or m)
+     */
+    double pos_link_from_orld(float crc_msg_pos, const Joint &joint);
 
-  // Payload Parameters to be passed to C5G
-  float payload_mass; //Kg
-  float payload_cog[3]; //mm
-  float payload_inertia[6]; //Kg*m^2
+    /**
+     * Convert joint position from Radians or Metres to CRC Message
+     * @param link_pos Position (rad or m)
+     * @param joint Joint struct with calibration constants
+     * @return Position (motor rounds)
+     */
+    float pos_orld_from_link(double link_pos, const Joint &joint);
 
-  // Data structures for ruckig Online Trajectory Generation (OTG). Used for interpolation in position mode
-  ruckig::Ruckig<6> ruckig_otg;
-  ruckig::InputParameter<6> ruckig_input;
-  ruckig::OutputParameter<6> ruckig_output;
-  double true_max_acceleration[6]; // Store used because ACCELERATION control mode overrides ruckig_input.max_acceleration
+    /**
+     * Convert joint velocity from CRC Message to Radians or Metres per Second
+     * @param crc_msg_vel Velocity (motor rounds / time step)
+     * @param joint Joint struct with calibration constants
+     * @return Velocity (rad/s or m/s)
+     */
+    double vel_link_from_orld(float crc_msg_vel, const Joint &joint);
 
-  // read/write values for ORLD cycle (strictly ordered by axis index)
-  float orld_pos_meas[6];
-  float orld_vel_meas[6];
-  float orld_cur_meas[6];
+    /**
+     * Convert joint velocity from Radians or Metres per Second to CRC Message
+     * @param crc_msg_vel Velocity (rad/s or m/s)
+     * @param joint Joint struct with calibration constants
+     * @return Velocity (motor rounds / time step)
+     */
+    float vel_orld_from_link(double link_vel, const Joint &joint);
 
-  float orld_pos_target[6];
-  float orld_vel_target[6];
-  float orld_cur_target[6];
-  float orld_trq_target[6];
+    /**
+     * Calculate motor current from joint torque or force
+     * @param current_A Current (amperes)
+     * @param joint Joint struct with calibration constants
+     * @return Torque or Force (Nm or N)
+     */
+    double eff_from_orld_cur(float current_A, const Joint &joint);
 
-  // Used for ORLD_SrvSetModality. Set in on_configure()
-  long open_axes_mask = 0b000000;
+    /**
+     * Calculate joint torque or force from motor current
+     * @param effort_Nm_or_N Torque or Force (Nm or N)
+     * @param joint Joint struct with calibration constants
+     * @return Current (amperes)
+     */
+    float orld_cur_from_eff(double effort_Nm_or_N, const Joint &joint);
 
-};
-}  // namespace crcopen_hardware
+    // read/write values for ros2control command/state
+    std::vector<Joint> joints_;        // In whatever order ros2control gives
+    std::vector<Joint *> open_joints_; // Pointers to elements in joints_ corresponding to the joints in open mode
+    double callback_period_;
 
-#endif  // CRCOPEN_HARDWARE__CRCOPEN_HARDWARE_HPP_
+    ControlMode control_mode;      // All axes have to be same, so control mode is shared
+    ControlMode next_control_mode; // For command mode switching
+
+    // Network addresses needed for controller intialisations
+    const char *LPC_addr;
+    const char *CRC_addr;
+
+    // Payload Parameters to be passed to C5G
+    float payload_mass;       // Kg
+    float payload_cog[3];     // mm
+    float payload_inertia[6]; // Kg*m^2
+
+    // Data structures for ruckig Online Trajectory Generation (OTG). Used for interpolation in position mode
+    ruckig::Ruckig<CRCOPEN_MAX_NUM_OPEN_AXES> ruckig_otg;
+    ruckig::InputParameter<CRCOPEN_MAX_NUM_OPEN_AXES> ruckig_input;
+    ruckig::OutputParameter<CRCOPEN_MAX_NUM_OPEN_AXES> ruckig_output;
+    double true_max_acceleration[CRCOPEN_MAX_NUM_OPEN_AXES]; // Store used because ACCELERATION control mode overrides ruckig_input.max_acceleration
+
+    // read/write values for ORLD cycle (strictly ordered by axis index)
+    float orld_pos_meas[CRCOPEN_MAX_NUM_OPEN_AXES];
+    float orld_vel_meas[CRCOPEN_MAX_NUM_OPEN_AXES];
+    float orld_cur_meas[CRCOPEN_MAX_NUM_OPEN_AXES];
+
+    float orld_pos_target[CRCOPEN_MAX_NUM_OPEN_AXES];
+    float orld_vel_target[CRCOPEN_MAX_NUM_OPEN_AXES];
+    float orld_cur_target[CRCOPEN_MAX_NUM_OPEN_AXES];
+    float orld_trq_target[CRCOPEN_MAX_NUM_OPEN_AXES];
+
+    // Used for ORLD_SrvSetModality. Set in on_configure()
+    int open_axes_mask = 0b0;
+  };
+} // namespace crcopen_hardware
+
+#endif // CRCOPEN_HARDWARE__CRCOPEN_HARDWARE_HPP_
